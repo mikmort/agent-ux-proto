@@ -12,6 +12,7 @@ import {
   ChevronRight16Regular,
   ChevronDown16Regular,
   Sparkle24Regular,
+  ChatSparkle24Filled,
   Send24Regular,
   Delete24Regular,
   Archive24Regular,
@@ -318,11 +319,11 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
 
         {/* Reading Pane - Right */}
         <div className="flex-1 overflow-y-auto bg-white">
-          <div className="max-w-5xl mx-auto px-6 py-4">
+          <div className="max-w-5xl mx-auto px-4 py-2">
             {/* Email Header */}
-            <div className="mb-6">
+            <div className="mb-4">
               {/* Subject Line */}
-              <div className="mb-4">
+              <div className="mb-3">
                 <h1 className="text-2xl font-semibold text-gray-900 mb-2">
                   {selectedEmail.subject}
                 </h1>
@@ -375,7 +376,11 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
           <Button
             appearance="primary"
             size="large"
-            icon={<Sparkle24Regular />}
+            icon={
+              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center">
+                <ChatSparkle24Filled className="text-white w-3 h-3" />
+              </div>
+            }
             onClick={() => setShowUrgentPanel(true)}
             className="shadow-lg animate-pulse hover:animate-none"
           >
@@ -389,7 +394,9 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
             <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 p-6" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Sparkle24Regular className="text-blue-600" />
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center">
+                    <ChatSparkle24Filled className="text-white w-4 h-4" />
+                  </div>
                   <Text size={500} weight="semibold">
                     Emails Requiring Immediate Attention
                   </Text>

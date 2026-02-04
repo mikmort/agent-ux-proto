@@ -48,6 +48,8 @@ interface AnalysisStep {
   label: string;
   detail: string;
   icon: any;
+  iconType?: 'component' | 'image';
+  iconSrc?: string;
   status: 'pending' | 'running' | 'complete';
   result?: string;
 }
@@ -65,16 +67,138 @@ interface TaskItem {
   };
 }
 
+interface CustomerData {
+  id: string;
+  orderNumber: string;
+  name: string;
+  eventName: string;
+  eventDate: string;
+  urgency: 'critical' | 'high' | 'medium';
+  currentOrder: {
+    item: string;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+  };
+  purchaseHistory: {
+    totalRevenue: number;
+    ordersLastYear: number;
+    averageOrderValue: number;
+    customerSince: string;
+    tier: 'Platinum' | 'Gold' | 'Silver';
+  };
+}
+
+interface UpgradeOption {
+  id: string;
+  model: string;
+  name: string;
+  unitPrice: number;
+  availability: string;
+  features: string[];
+}
+
+const affectedCustomers: CustomerData[] = [
+  {
+    id: 'cust-001',
+    orderNumber: 'EVT-2201',
+    name: 'TechCon 2026 Summit',
+    eventName: 'TechCon 2026 Summit',
+    eventDate: 'Feb 15, 2026',
+    urgency: 'critical',
+    currentOrder: {
+      item: 'ProSound PX-500 Portable Speaker',
+      quantity: 50,
+      unitPrice: 2500,
+      total: 125000,
+    },
+    purchaseHistory: {
+      totalRevenue: 845000,
+      ordersLastYear: 4,
+      averageOrderValue: 211250,
+      customerSince: '2019',
+      tier: 'Platinum',
+    },
+  },
+  {
+    id: 'cust-002',
+    orderNumber: 'EVT-2202',
+    name: 'City Music Festival',
+    eventName: 'City Music Festival',
+    eventDate: 'Feb 22, 2026',
+    urgency: 'high',
+    currentOrder: {
+      item: 'ProSound PX-500 Portable Speaker',
+      quantity: 25,
+      unitPrice: 2500,
+      total: 62500,
+    },
+    purchaseHistory: {
+      totalRevenue: 320000,
+      ordersLastYear: 2,
+      averageOrderValue: 160000,
+      customerSince: '2021',
+      tier: 'Gold',
+    },
+  },
+  {
+    id: 'cust-003',
+    orderNumber: 'EVT-2203',
+    name: 'Corporate Awards Gala',
+    eventName: 'Corporate Awards Gala',
+    eventDate: 'Mar 5, 2026',
+    urgency: 'medium',
+    currentOrder: {
+      item: 'ProSound PX-500 Portable Speaker',
+      quantity: 25,
+      unitPrice: 2500,
+      total: 62500,
+    },
+    purchaseHistory: {
+      totalRevenue: 125000,
+      ordersLastYear: 1,
+      averageOrderValue: 125000,
+      customerSince: '2024',
+      tier: 'Silver',
+    },
+  },
+];
+
+const upgradeOptions: UpgradeOption[] = [
+  {
+    id: 'PX-800',
+    model: 'PX-800',
+    name: 'ProSound PX-800 Premium',
+    unitPrice: 3000,
+    availability: 'In Stock - 65 units',
+    features: ['Enhanced audio clarity', 'Extended warranty', 'Immediate availability', 'Advanced DSP'],
+  },
+  {
+    id: 'PX-900',
+    model: 'PX-900',
+    name: 'ProSound PX-900 Elite',
+    unitPrice: 3500,
+    availability: 'In Stock - 30 units',
+    features: ['Premium audio quality', '5-year warranty', 'Immediate availability', 'AI noise cancellation'],
+  },
+];
+
 export default function CopilotSuggestions({ suggestions, onStartChat }: CopilotSuggestionsProps) {
   const [loading, setLoading] = useState(true);
   const [analysisSteps, setAnalysisSteps] = useState<AnalysisStep[]>([]);
-  const [totalSteps] = useState(7);
+  const [totalSteps] = useState(9);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [expandedTask, setExpandedTask] = useState<string | null>(null);
+  const [showUpgradeConfig, setShowUpgradeConfig] = useState(false);
+  const [selectedCustomers, setSelectedCustomers] = useState<Set<string>>(new Set());
+  const [selectedUpgradeOption, setSelectedUpgradeOption] = useState<string>('PX-800');
+  const [showWordDocument, setShowWordDocument] = useState(false);
+  const [showOutlookEmail, setShowOutlookEmail] = useState(false);
   const hasRun = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const configRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Prevent double execution in React Strict Mode
@@ -88,6 +212,8 @@ export default function CopilotSuggestions({ suggestions, onStartChat }: Copilot
           label: 'Analyzing email content',
           detail: 'Extracting key information from supplier notification',
           icon: Mail24Regular,
+          iconType: 'image' as const,
+          iconSrc: '/outlook-icon.svg',
           result: 'Order #SW-2847 • ProSound PX-500 • 1-week delay due to snowstorm',
         },
         {
@@ -95,6 +221,8 @@ export default function CopilotSuggestions({ suggestions, onStartChat }: Copilot
           label: 'Finding purchase order details',
           detail: 'Querying Dynamics 365 for order #SW-2847',
           icon: DocumentSearch24Regular,
+          iconType: 'image' as const,
+          iconSrc: '/dynamics-business-central.svg',
           result: 'PO-2847 • 100 units ordered • Supplier: SoundWave Pro Audio',
         },
         {
@@ -102,20 +230,41 @@ export default function CopilotSuggestions({ suggestions, onStartChat }: Copilot
           label: 'Searching for affected sales orders',
           detail: 'Checking events requiring ProSound PX-500 speakers',
           icon: ShoppingBag24Regular,
+          iconType: 'image' as const,
+          iconSrc: '/dynamics-business-central.svg',
           result: 'Found 3 events requiring PX-500 speakers (TechCon, Music Festival, Awards Gala)',
+        },
+        {
+          id: 'teams',
+          label: 'Searching Teams chats with customers',
+          detail: 'Reviewing conversation history for delivery preferences and past issues',
+          icon: ChatSparkle24Regular,
+          iconType: 'component' as const,
+          result: 'TechCon team emphasized event date is non-negotiable • Previous successful upgrades with 2 customers',
         },
         {
           id: 'inventory',
           label: 'Checking inventory across warehouses',
           detail: 'Scanning stock levels in all locations',
           icon: Box24Regular,
+          iconType: 'image' as const,
+          iconSrc: '/dynamics-business-central.svg',
           result: '15 units in stock • Insufficient for all events',
+        },
+        {
+          id: 'sharepoint',
+          label: 'Finding policy documents on SharePoint',
+          detail: 'Searching for supplier delay procedures and customer communication guidelines',
+          icon: Library24Regular,
+          iconType: 'component' as const,
+          result: 'Policy SD-204: Offer premium upgrades for Platinum customers • Notify within 24 hours of delay',
         },
         {
           id: 'suppliers',
           label: 'Finding alternate suppliers',
           detail: 'Searching supplier network for faster delivery options',
           icon: Building24Regular,
+          iconType: 'component' as const,
           result: '3 certified suppliers found with 3-5 day delivery',
         },
         {
@@ -123,6 +272,8 @@ export default function CopilotSuggestions({ suggestions, onStartChat }: Copilot
           label: 'Checking for substitute products',
           detail: 'Looking for compatible speaker systems in stock',
           icon: Search24Regular,
+          iconType: 'image' as const,
+          iconSrc: '/dynamics-business-central.svg',
           result: 'PX-800 Premium available • 65 units in stock • Compatible upgrade',
         },
         {
@@ -130,6 +281,7 @@ export default function CopilotSuggestions({ suggestions, onStartChat }: Copilot
           label: 'Calculating revenue impact',
           detail: 'Analyzing financial risk across affected events',
           icon: Money24Regular,
+          iconType: 'component' as const,
           result: '$225,000 revenue at risk across 3 events',
         },
       ];
@@ -164,54 +316,102 @@ export default function CopilotSuggestions({ suggestions, onStartChat }: Copilot
 
   // Auto-scroll to bottom when new content appears
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [analysisSteps, showSuggestions, tasks]);
+    if (showUpgradeConfig && configRef.current) {
+      // Scroll to top of configuration UI
+      configRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [analysisSteps, showSuggestions, showUpgradeConfig, tasks]);
+
+  const toggleCustomerSelection = (customerId: string) => {
+    setSelectedCustomers((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(customerId)) {
+        newSet.delete(customerId);
+      } else {
+        newSet.add(customerId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAllCustomers = () => {
+    setSelectedCustomers(new Set(affectedCustomers.map((c) => c.id)));
+  };
 
   const handleSuggestionClick = async (suggestionId: string) => {
     if (suggestionId === 'sug-003') {
-      // Premium speaker upgrade
-      setSelectedAction('premium-upgrade');
+      // Show configuration UI for premium speaker upgrade
+      setSelectedAction('premium-upgrade-config');
+      setShowUpgradeConfig(true);
+      // Start with no customers selected
+      setSelectedCustomers(new Set());
+    }
+  };
 
-      // Simulate updating sales orders
-      const orderTasks: TaskItem[] = [
-        {
-          id: 'task-1',
-          title: 'Updating Sales Order EVT-2201 (TechCon 2026 Summit)',
-          status: 'pending',
-          details: {
-            oldItem: 'ProSound PX-500 Portable Speaker (50 units)',
-            newItem: 'ProSound PX-800 Premium Speaker (50 units)',
-            oldPrice: '$125,000',
-            newPrice: '$150,000',
-            notes: 'Premium upgrade includes immediate availability and extended warranty',
-          },
-        },
-        {
-          id: 'task-2',
-          title: 'Updating Sales Order EVT-2202 (City Music Festival)',
-          status: 'pending',
-          details: {
-            oldItem: 'ProSound PX-500 Portable Speaker (25 units)',
-            newItem: 'ProSound PX-800 Premium Speaker (25 units)',
-            oldPrice: '$62,500',
-            newPrice: '$75,000',
-            notes: 'Premium upgrade with 3-year warranty extension',
-          },
-        },
-      ];
+  const confirmUpgrade = async () => {
+    // Hide config and show execution
+    setShowUpgradeConfig(false);
+    setSelectedAction('premium-upgrade');
 
-      setTasks(orderTasks);
+    const selectedOption = upgradeOptions.find((opt) => opt.id === selectedUpgradeOption)!;
+    const selectedCustomersList = affectedCustomers.filter((customer) =>
+      selectedCustomers.has(customer.id)
+    );
 
-      // Simulate task execution
-      for (let i = 0; i < orderTasks.length; i++) {
-        setTasks((prev) =>
-          prev.map((t, idx) => (idx === i ? { ...t, status: 'running' as const } : t))
-        );
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        setTasks((prev) =>
-          prev.map((t, idx) => (idx === i ? { ...t, status: 'complete' as const } : t))
-        );
-      }
+    // Create tasks: order updates, mitigation report, and email notifications
+    const orderTasks: TaskItem[] = selectedCustomersList.map((customer) => ({
+      id: `task-${customer.id}`,
+      title: `Updating Sales Order ${customer.orderNumber} (${customer.name})`,
+      status: 'pending' as const,
+      details: {
+        oldItem: `${customer.currentOrder.item} (${customer.currentOrder.quantity} units)`,
+        newItem: `${selectedOption.name} (${customer.currentOrder.quantity} units)`,
+        oldPrice: `$${customer.currentOrder.total.toLocaleString()}`,
+        newPrice: `$${(customer.currentOrder.quantity * selectedOption.unitPrice).toLocaleString()}`,
+        notes: `Premium upgrade includes ${selectedOption.features.join(', ')}`,
+      },
+    }));
+
+    const mitigationReportTask: TaskItem = {
+      id: 'task-mitigation-report',
+      title: 'Creating mitigation report in Word',
+      status: 'pending' as const,
+      details: {
+        oldItem: '',
+        newItem: '',
+        oldPrice: '',
+        newPrice: '',
+        notes: `Comprehensive report documenting supplier delay, affected customers, upgrade solutions, and revenue impact. Includes approval workflow for management review.`,
+      },
+    };
+
+    const emailTask: TaskItem = {
+      id: 'task-email-notifications',
+      title: `Sending email updates to ${selectedCustomersList.length} customer${selectedCustomersList.length > 1 ? 's' : ''}`,
+      status: 'pending' as const,
+      details: {
+        oldItem: '',
+        newItem: '',
+        oldPrice: '',
+        newPrice: '',
+        notes: `Personalized email notifications sent via Outlook to: ${selectedCustomersList.map((c) => c.name).join(', ')}. Each email includes order details, upgrade information, and delivery timeline.`,
+      },
+    };
+
+    const allTasks = [...orderTasks, mitigationReportTask, emailTask];
+    setTasks(allTasks);
+
+    // Simulate task execution
+    for (let i = 0; i < allTasks.length; i++) {
+      setTasks((prev) =>
+        prev.map((t, idx) => (idx === i ? { ...t, status: 'running' as const } : t))
+      );
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      setTasks((prev) =>
+        prev.map((t, idx) => (idx === i ? { ...t, status: 'complete' as const } : t))
+      );
     }
   };
 
@@ -371,7 +571,11 @@ export default function CopilotSuggestions({ suggestions, onStartChat }: Copilot
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                              <step.icon className="text-gray-400 w-5 h-5" />
+                              {step.iconType === 'image' && step.iconSrc ? (
+                                <img src={step.iconSrc} alt="" className="w-5 h-5" />
+                              ) : (
+                                <step.icon className="text-gray-400 w-5 h-5" />
+                              )}
                               <span className={`text-sm ${step.status === 'running' ? 'font-semibold text-blue-400' : 'text-white'}`}>
                                 {step.label}
                               </span>
@@ -381,13 +585,40 @@ export default function CopilotSuggestions({ suggestions, onStartChat }: Copilot
                                 {step.detail}
                               </p>
                             )}
-                            {step.status === 'complete' && step.result && (
-                              <div className="mt-1 ml-7 bg-green-900/20 border border-green-700/30 rounded px-3 py-2">
-                                <p className="text-sm text-green-400">
-                                  ✓ {step.result}
-                                </p>
-                              </div>
-                            )}
+                            {step.status === 'complete' && step.result && (() => {
+                              // Determine color based on result content
+                              const result = step.result.toLowerCase();
+                              let bgColor = 'bg-gray-800/20';
+                              let borderColor = 'border-gray-700/30';
+                              let textColor = 'text-gray-400';
+
+                              // Critical/negative situations (red)
+                              if (result.includes('insufficient') || result.includes('at risk') || result.includes('delay')) {
+                                bgColor = 'bg-red-900/20';
+                                borderColor = 'border-red-700/30';
+                                textColor = 'text-red-400';
+                              }
+                              // Warning situations (yellow/orange)
+                              else if (result.includes('3-5 day') || result.includes('certified suppliers')) {
+                                bgColor = 'bg-yellow-900/20';
+                                borderColor = 'border-yellow-700/30';
+                                textColor = 'text-yellow-400';
+                              }
+                              // Positive situations (green)
+                              else if (result.includes('available') || result.includes('in stock') || result.includes('compatible')) {
+                                bgColor = 'bg-green-900/20';
+                                borderColor = 'border-green-700/30';
+                                textColor = 'text-green-400';
+                              }
+
+                              return (
+                                <div className={`mt-1 ml-7 ${bgColor} border ${borderColor} rounded px-3 py-2`}>
+                                  <p className={`text-sm ${textColor}`}>
+                                    ✓ {step.result}
+                                  </p>
+                                </div>
+                              );
+                            })()}
                           </div>
                         </div>
                       ))}
@@ -523,6 +754,217 @@ export default function CopilotSuggestions({ suggestions, onStartChat }: Copilot
               </div>
             )}
 
+            {/* Configuration UI for upgrade selection */}
+            {showUpgradeConfig && (
+              <div ref={configRef} className="mb-8">
+                <div className="flex items-start gap-3">
+                  <img
+                    src="/copilot-icon.webp"
+                    alt="Copilot"
+                    className="w-8 h-8 flex-shrink-0"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-400 mb-1">Copilot</p>
+                    <h2 className="text-lg font-semibold mb-1 text-white">
+                      Configure Premium Speaker Upgrade
+                    </h2>
+                    <p className="text-xs text-gray-400 mb-4">
+                      Select customers and upgrade options. Customer data helps prioritize based on purchase history.
+                    </p>
+
+                    {/* Upgrade Options */}
+                    <div className="mb-4">
+                      <h3 className="text-sm font-semibold text-white mb-2">Select Upgrade Model</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {upgradeOptions.map((option) => (
+                          <div
+                            key={option.id}
+                            onClick={() => setSelectedUpgradeOption(option.id)}
+                            className={`bg-[#323232] border rounded-lg p-3 cursor-pointer transition-all ${
+                              selectedUpgradeOption === option.id
+                                ? 'border-blue-500 ring-2 ring-blue-500/20'
+                                : 'border-[#404040] hover:border-[#4a4a4a]'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between mb-1">
+                              <div>
+                                <h4 className="text-sm font-semibold text-white">{option.name}</h4>
+                                <p className="text-xs text-gray-500">{option.model}</p>
+                              </div>
+                              {selectedUpgradeOption === option.id && (
+                                <Checkmark24Filled className="text-blue-500 w-4 h-4" />
+                              )}
+                            </div>
+                            <div className="flex items-baseline gap-2 mb-1">
+                              <span className="text-base font-bold text-white">
+                                ${option.unitPrice.toLocaleString()}
+                              </span>
+                              <span className="text-xs text-gray-500">per unit</span>
+                            </div>
+                            <p className="text-xs text-green-400 mb-1">✓ {option.availability}</p>
+                            <div className="space-y-0.5">
+                              {option.features.map((feature, idx) => (
+                                <p key={idx} className="text-xs text-gray-400">• {feature}</p>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Customer Selection */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-sm font-semibold text-white">Select Customers</h3>
+                        <button
+                          onClick={selectAllCustomers}
+                          className="text-xs text-blue-400 hover:text-blue-300"
+                        >
+                          Select All
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        {affectedCustomers.map((customer) => {
+                          const isSelected = selectedCustomers.has(customer.id);
+                          const urgencyColor =
+                            customer.urgency === 'critical'
+                              ? 'text-red-400 bg-red-900/20'
+                              : customer.urgency === 'high'
+                              ? 'text-orange-400 bg-orange-900/20'
+                              : 'text-yellow-400 bg-yellow-900/20';
+                          const tierColor =
+                            customer.purchaseHistory.tier === 'Platinum'
+                              ? 'text-purple-400 bg-purple-900/20'
+                              : customer.purchaseHistory.tier === 'Gold'
+                              ? 'text-yellow-400 bg-yellow-900/20'
+                              : 'text-gray-400 bg-gray-800/20';
+
+                          return (
+                            <div
+                              key={customer.id}
+                              onClick={() => toggleCustomerSelection(customer.id)}
+                              className={`bg-[#323232] border rounded-lg p-3 cursor-pointer transition-all ${
+                                isSelected
+                                  ? 'border-blue-500 ring-2 ring-blue-500/20'
+                                  : 'border-[#404040] hover:border-[#4a4a4a]'
+                              }`}
+                            >
+                              <div className="flex items-start gap-3">
+                                {/* Checkbox */}
+                                <div className="flex-shrink-0 mt-0.5">
+                                  {isSelected ? (
+                                    <div className="w-4 h-4 bg-blue-500 rounded flex items-center justify-center">
+                                      <Checkmark24Filled className="text-white w-3 h-3" />
+                                    </div>
+                                  ) : (
+                                    <div className="w-4 h-4 border-2 border-gray-500 rounded" />
+                                  )}
+                                </div>
+
+                                {/* Customer Info */}
+                                <div className="flex-1">
+                                  <div className="flex items-start justify-between mb-1.5">
+                                    <div>
+                                      <h4 className="text-sm font-semibold text-white mb-0.5">
+                                        {customer.name}
+                                      </h4>
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-xs text-gray-500">
+                                          {customer.orderNumber}
+                                        </span>
+                                        <span className="text-xs text-gray-600">•</span>
+                                        <span className="text-xs text-gray-400">
+                                          {customer.eventDate}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-1.5">
+                                        <span
+                                          className={`text-xs px-1.5 py-0.5 rounded ${urgencyColor}`}
+                                        >
+                                          {customer.urgency.toUpperCase()}
+                                        </span>
+                                        <span className={`text-xs px-1.5 py-0.5 rounded ${tierColor}`}>
+                                          {customer.purchaseHistory.tier}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Current Order */}
+                                  <div className="bg-[#2a2a2a] rounded p-2 mb-2">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs text-white">
+                                        {customer.currentOrder.item}
+                                      </span>
+                                      <span className="text-xs text-gray-400">
+                                        {customer.currentOrder.quantity} units
+                                      </span>
+                                    </div>
+                                    <p className="text-xs text-gray-400 mt-0.5">
+                                      ${customer.currentOrder.total.toLocaleString()}
+                                    </p>
+                                  </div>
+
+                                  {/* Purchase History */}
+                                  <div className="grid grid-cols-4 gap-2">
+                                    <div>
+                                      <p className="text-xs text-gray-500">Revenue</p>
+                                      <p className="text-xs font-semibold text-green-400">
+                                        ${(customer.purchaseHistory.totalRevenue / 1000).toFixed(0)}K
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-gray-500">Orders</p>
+                                      <p className="text-xs font-semibold text-white">
+                                        {customer.purchaseHistory.ordersLastYear}/yr
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-gray-500">Avg Order</p>
+                                      <p className="text-xs font-semibold text-white">
+                                        ${(customer.purchaseHistory.averageOrderValue / 1000).toFixed(0)}K
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-gray-500">Since</p>
+                                      <p className="text-xs font-semibold text-white">
+                                        {customer.purchaseHistory.customerSince}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={confirmUpgrade}
+                        disabled={selectedCustomers.size === 0}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm font-medium rounded-md transition-colors"
+                      >
+                        Confirm Upgrade ({selectedCustomers.size}{' '}
+                        {selectedCustomers.size === 1 ? 'customer' : 'customers'})
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowUpgradeConfig(false);
+                          setSelectedAction(null);
+                        }}
+                        className="px-4 py-2 bg-[#323232] hover:bg-[#3a3a3a] text-white text-sm font-medium rounded-md transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Tasks execution after selecting premium upgrade */}
             {selectedAction === 'premium-upgrade' && tasks.length > 0 && (
               <div className="mb-8">
@@ -578,44 +1020,72 @@ export default function CopilotSuggestions({ suggestions, onStartChat }: Copilot
                           {expandedTask === task.id && task.details && (
                             <div className="border-t border-[#404040] p-4 bg-[#2a2a2a]">
                               <div className="space-y-3">
-                                <div>
-                                  <p className="text-xs text-gray-500 mb-1">Previous item</p>
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm text-red-400 line-through">
-                                      {task.details.oldItem}
-                                    </span>
-                                    <span className="text-xs text-gray-500">
-                                      {task.details.oldPrice}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-gray-500 mb-1">Updated to</p>
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm text-green-400 font-medium">
-                                      {task.details.newItem}
-                                    </span>
-                                    <span className="text-xs text-gray-400">
-                                      {task.details.newPrice}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="pt-2 border-t border-[#404040]">
-                                  <p className="text-xs text-gray-400">{task.details.notes}</p>
-                                </div>
+                                {/* Sales Order tasks: Show old/new item comparison */}
+                                {task.details.oldItem && task.details.newItem && (
+                                  <>
+                                    <div>
+                                      <p className="text-xs text-gray-500 mb-1">Previous item</p>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-sm text-red-400 line-through">
+                                          {task.details.oldItem}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                          {task.details.oldPrice}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-gray-500 mb-1">Updated to</p>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-sm text-green-400 font-medium">
+                                          {task.details.newItem}
+                                        </span>
+                                        <span className="text-xs text-gray-400">
+                                          {task.details.newPrice}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
 
-                                {/* View in Dynamics button within task */}
+                                {/* Notes section for all tasks */}
+                                {task.details.notes && (
+                                  <div className={task.details.oldItem ? "pt-2 border-t border-[#404040]" : ""}>
+                                    <p className="text-xs text-gray-400">{task.details.notes}</p>
+                                  </div>
+                                )}
+
+                                {/* Action buttons based on task type */}
                                 <div className="pt-3">
-                                  <button
-                                    onClick={() => {
-                                      // Navigate to the specific sales order
-                                      window.location.href = '/sales-order?highlight=PX-800';
-                                    }}
-                                    className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-2"
-                                  >
-                                    <DocumentSearch24Regular className="w-4 h-4" />
-                                    <span>View in Dynamics 365</span>
-                                  </button>
+                                  {task.id.startsWith('task-cust-') && (
+                                    <button
+                                      onClick={() => {
+                                        window.location.href = '/sales-order?highlight=PX-800';
+                                      }}
+                                      className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-2"
+                                    >
+                                      <DocumentSearch24Regular className="w-4 h-4" />
+                                      <span>View in Dynamics 365</span>
+                                    </button>
+                                  )}
+                                  {task.id === 'task-mitigation-report' && (
+                                    <button
+                                      onClick={() => setShowWordDocument(true)}
+                                      className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-2"
+                                    >
+                                      <Notebook24Regular className="w-4 h-4" />
+                                      <span>Open in Word</span>
+                                    </button>
+                                  )}
+                                  {task.id === 'task-email-notifications' && (
+                                    <button
+                                      onClick={() => setShowOutlookEmail(true)}
+                                      className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-2"
+                                    >
+                                      <Mail24Regular className="w-4 h-4" />
+                                      <span>View in Outlook</span>
+                                    </button>
+                                  )}
                                 </div>
                               </div>
                             </div>

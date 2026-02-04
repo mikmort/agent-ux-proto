@@ -374,7 +374,7 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
                 <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <Sparkle24Regular className="text-blue-600 flex-shrink-0" />
                   <div className="flex-1">
-                    <Text weight="semibold" size={300} className="block text-gray-900 mb-1">
+                    <Text weight="semibold" size={300} className="block text-gray-900 mb-2">
                       Need help with this?
                     </Text>
                     <Text size={200} className="text-gray-600">

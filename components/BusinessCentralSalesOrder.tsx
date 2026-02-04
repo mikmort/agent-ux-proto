@@ -60,9 +60,9 @@ export default function BusinessCentralSalesOrder({ onAskCopilot, highlightedIte
   const [orderMetadata, setOrderMetadata] = useState<OrderMetadata>({
     shipmentMethod: 'DELIVERY',
     shipmentMethodCode: 'DELIVERY',
-    eventType: 'Conference',
-    loadInDateTime: '2026-02-14T08:00:00',
-    technicalDirector: 'Mike Johnson',
+    eventType: 'Technology Conference',
+    loadInDateTime: 'Feb 14, 2026 - 6:00 AM',
+    technicalDirector: 'Marcus Rivera - (415) 555-0199',
   });
   const [highlightedField, setHighlightedField] = useState<string | null>(null);
   const [expandedReportId, setExpandedReportId] = useState<string | null>(null);
@@ -386,12 +386,43 @@ Sales: (555) 0123-4567`;
         emailPreview: 'Draft email to Sarah Mitchell explaining the proactive equipment upgrade and delivery guarantee.',
       };
       setChatMessages((prev) => [...prev, emailTaskMsg]);
+    } else if (lowerInput.includes('load') && lowerInput.includes('time')) {
+      // Add processing message
+      const processingMsg: ChatMessage = {
+        id: `msg-${Date.now()}-processing`,
+        role: 'assistant',
+        content: 'Analyzing equipment requirements and updating load-in time...',
+        timestamp: new Date(),
+      };
+      setChatMessages((prev) => [...prev, processingMsg]);
+
+      // Simulate update
+      await new Promise((resolve) => setTimeout(resolve, 1800));
+
+      // Update the load-in time to earlier (Premium speakers need more setup)
+      setOrderMetadata(prev => ({
+        ...prev,
+        loadInDateTime: 'Feb 14, 2026 - 5:00 AM',
+      }));
+
+      // Highlight the field
+      setHighlightedField('loadInDateTime');
+      setTimeout(() => setHighlightedField(null), 3000);
+
+      // Add success message
+      const successMsg: ChatMessage = {
+        id: `msg-${Date.now()}-success`,
+        role: 'assistant',
+        content: '✓ Updated Load-In Date/Time to Feb 14, 2026 - 5:00 AM. The ProSound PX-800 Premium speakers require additional setup time due to their advanced features and larger power requirements. Moving load-in one hour earlier ensures adequate time for calibration and sound testing before the event.',
+        timestamp: new Date(),
+      };
+      setChatMessages((prev) => [...prev.slice(0, -1), successMsg]);
     } else {
       // Generic response for other queries
       const responseMsg: ChatMessage = {
         id: `msg-${Date.now()}-response`,
         role: 'assistant',
-        content: 'I can help you update this sales order. Try commands like "Change shipment method to COURIER" or "Update delivery date to February 20".',
+        content: 'I can help you update this sales order. Try commands like "Change shipment method to COURIER" or "Update the load-in time".',
         timestamp: new Date(),
       };
       setChatMessages((prev) => [...prev, responseMsg]);
@@ -526,7 +557,7 @@ Sales: (555) 0123-4567`;
           <div className="w-px h-6 bg-gray-300 mx-2" />
           <Button
             appearance="primary"
-            icon={<ChatSparkle24Filled />}
+            icon={<img src="/copilot-icon.webp" alt="" className="h-5 w-auto" />}
             onClick={() => setIsChatOpen(true)}
             size="small"
           >
@@ -545,7 +576,7 @@ Sales: (555) 0123-4567`;
           {/* Chat Header */}
           <div className="bg-[#0078d4] text-white px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ChatSparkle24Filled />
+              <img src="/copilot-icon.webp" alt="Copilot" className="h-5 w-auto" />
               <Text weight="semibold" className="text-white">Copilot</Text>
             </div>
             <button
@@ -682,7 +713,7 @@ Sales: (555) 0123-4567`;
               </button>
             </div>
             <Text size={200} className="text-gray-500 mt-2 block">
-              Try: "Change shipment method to COURIER"
+              Try: "Change shipment method to COURIER" or "Update the load-in time"
             </Text>
           </div>
         </div>
@@ -830,6 +861,46 @@ Sales: (555) 0123-4567`;
                   <div className="flex-1">
                     <div className="text-sm bg-white border border-gray-300 px-2 py-1 rounded">
                       JD - James Davis
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-start">
+                  <label className="w-40 text-sm text-gray-700 pt-1">Event Type</label>
+                  <div className="flex-1">
+                    <div className="text-sm bg-white border border-gray-300 px-2 py-1 rounded">
+                      {orderMetadata.eventType}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-start">
+                  <label className="w-40 text-sm text-gray-700 pt-1">Load-In Date/Time</label>
+                  <div className="flex-1">
+                    <div
+                      className={`text-sm px-2 py-1 rounded border transition-all ${
+                        highlightedField === 'loadInDateTime'
+                          ? 'bg-blue-50 border-blue-500 border-2 shadow-sm'
+                          : 'bg-white border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {orderMetadata.loadInDateTime}
+                        {highlightedField === 'loadInDateTime' && (
+                          <Tooltip
+                            content="Copilot just updated this field"
+                            relationship="label"
+                          >
+                            <Checkmark24Filled className="text-green-600 w-4 h-4" />
+                          </Tooltip>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-start">
+                  <label className="w-40 text-sm text-gray-700 pt-1">Technical Director</label>
+                  <div className="flex-1">
+                    <div className="text-sm bg-white border border-gray-300 px-2 py-1 rounded">
+                      {orderMetadata.technicalDirector}
                     </div>
                   </div>
                 </div>

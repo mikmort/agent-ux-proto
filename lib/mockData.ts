@@ -74,7 +74,7 @@ Current monthly charges: $2,847/month
 Thank you,
 Microsoft Azure Billing`,
     date: '2026-02-04T09:15:00Z',
-    importance: 'high',
+    importance: 'medium',
     read: false,
   },
   {

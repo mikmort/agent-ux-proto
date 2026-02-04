@@ -93,11 +93,11 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
 
       {/* Ribbon Commands */}
       <div className="border-b border-gray-200 bg-gray-50">
-        <div className="flex items-center gap-1 px-4 py-2">
+        <div className="flex items-center gap-0.5 px-2 py-1.5">
           <Button appearance="primary" icon={<Send24Regular />} size="small">
             New Email
           </Button>
-          <Divider vertical className="mx-1 h-6" />
+          <Divider vertical className="mx-2 h-6" />
           <Button appearance="subtle" icon={<Delete24Regular />} size="small">
             Delete
           </Button>
@@ -108,7 +108,7 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
             Junk
             <ChevronDown20Regular />
           </Button>
-          <Divider vertical className="mx-1 h-6" />
+          <Divider vertical className="mx-2 h-6" />
           <Button appearance="subtle" icon={<ArrowReply24Regular />} size="small">
             Reply
           </Button>
@@ -118,7 +118,7 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
           <Button appearance="subtle" icon={<Share24Regular />} size="small">
             Forward
           </Button>
-          <Divider vertical className="mx-1 h-6" />
+          <Divider vertical className="mx-2 h-6" />
           <Button appearance="subtle" icon={<MailRead24Regular />} size="small">
             Read/Unread
           </Button>
@@ -131,7 +131,7 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
           <Button appearance="subtle" icon={<Pin24Regular />} size="small">
             Pin
           </Button>
-          <Divider vertical className="mx-1 h-6" />
+          <Divider vertical className="mx-2 h-6" />
           <Button appearance="subtle" icon={<Print24Regular />} size="small">
             Print
           </Button>

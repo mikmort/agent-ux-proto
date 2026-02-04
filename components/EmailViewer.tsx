@@ -32,7 +32,7 @@ import {
   Tag24Regular,
   MailRead24Regular,
 } from '@fluentui/react-icons';
-import { inboxEmails, urgentEmails } from '@/lib/mockData';
+import { inboxEmails, urgentEmails, urgentEmailIds } from '@/lib/mockData';
 
 interface EmailViewerProps {
   email: Email;
@@ -47,7 +47,7 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
   const [showUrgentPanel, setShowUrgentPanel] = useState(false);
 
   const selectedEmail = inboxEmails.find((e) => e.id === selectedEmailId) || email;
-  const isSupplierEmail = selectedEmail.id === 'email-001';
+  const isUrgentEmail = urgentEmailIds.includes(selectedEmail.id);
 
   const filteredEmails = inboxEmails.filter(
     (e) =>
@@ -368,6 +368,31 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
               </div>
             </div>
 
+            {/* Copilot Help Button - Shows for urgent emails */}
+            {isUrgentEmail && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <Sparkle24Regular className="text-blue-600 flex-shrink-0" />
+                  <div className="flex-1">
+                    <Text weight="semibold" size={300} className="block text-gray-900 mb-1">
+                      Need help with this?
+                    </Text>
+                    <Text size={200} className="text-gray-600">
+                      Copilot can analyze this message and suggest actions
+                    </Text>
+                  </div>
+                  <Button
+                    appearance="primary"
+                    size="medium"
+                    icon={<ChatSparkle24Filled />}
+                    onClick={onAskCopilot}
+                  >
+                    Ask Copilot
+                  </Button>
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
 
@@ -377,9 +402,11 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
             appearance="primary"
             size="large"
             icon={
-              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center">
-                <ChatSparkle24Filled className="text-white w-3 h-3" />
-              </div>
+              <img
+                src="/copilot-icon.webp"
+                alt="Copilot"
+                className="h-5 w-auto"
+              />
             }
             onClick={() => setShowUrgentPanel(true)}
             className="shadow-lg animate-pulse hover:animate-none"
@@ -394,9 +421,11 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
             <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 p-6" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center">
-                    <ChatSparkle24Filled className="text-white w-4 h-4" />
-                  </div>
+                  <img
+                    src="/copilot-icon.webp"
+                    alt="Copilot"
+                    className="h-7 w-auto"
+                  />
                   <Text size={500} weight="semibold">
                     Emails Requiring Immediate Attention
                   </Text>
@@ -425,22 +454,36 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
                     className="border border-gray-200 rounded-lg p-4 hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center font-semibold flex-shrink-0">
+                      {/* Priority indicator with colored border */}
+                      <div className={`flex-shrink-0 w-1 h-full rounded-full ${
+                        urgentEmail.importance === 'high'
+                          ? 'bg-red-600'
+                          : urgentEmail.importance === 'medium'
+                          ? 'bg-orange-500'
+                          : 'bg-blue-500'
+                      }`} />
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center font-semibold flex-shrink-0 text-gray-700">
                         {urgentEmail.from.charAt(0).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <Text size={400} weight="semibold" className="truncate">
+                          <Text size={400} weight="semibold" className="truncate flex-1">
                             {urgentEmail.subject}
                           </Text>
-                          {urgentEmail.importance === 'high' && (
-                            <span className="text-red-600 text-sm font-bold">URGENT</span>
-                          )}
+                          <span className={`px-2 py-0.5 rounded text-xs font-medium flex-shrink-0 ${
+                            urgentEmail.importance === 'high'
+                              ? 'bg-red-50 text-red-700 border border-red-200'
+                              : urgentEmail.importance === 'medium'
+                              ? 'bg-orange-50 text-orange-700 border border-orange-200'
+                              : 'bg-blue-50 text-blue-700 border border-blue-200'
+                          }`}>
+                            {urgentEmail.importance === 'high' ? 'High Priority' : urgentEmail.importance === 'medium' ? 'Medium' : 'Low'}
+                          </span>
                         </div>
-                        <Text size={300} className="text-gray-600 truncate block mb-1">
-                          From: {urgentEmail.from}
+                        <Text size={300} className="text-gray-600 truncate block mb-2">
+                          <span className="font-medium">From:</span> {urgentEmail.from}
                         </Text>
-                        <Text size={200} className="text-gray-500 line-clamp-2">
+                        <Text size={200} className="text-gray-500 line-clamp-2 block">
                           {urgentEmail.body.split('\n')[0]}
                         </Text>
                       </div>

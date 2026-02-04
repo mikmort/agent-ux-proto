@@ -26,7 +26,6 @@ SoundWave Pro Audio`,
 };
 
 export const inboxEmails: Email[] = [
-  supplierEmail,
   {
     id: 'email-002',
     from: 'sarah.chen@contoso.com',
@@ -37,9 +36,79 @@ Thanks for the agenda. I'd like to add a discussion point about the new CRM inte
 
 See you tomorrow!
 Sarah`,
-    date: '2026-02-04T08:15:00Z',
+    date: '2026-02-04T11:45:00Z',
     importance: 'medium',
-    read: true,
+    read: false,
+  },
+  {
+    id: 'email-009',
+    from: 'events@techcon2026.com',
+    subject: 'URGENT: Venue Change Confirmation Needed by EOD',
+    body: `Hello,
+
+Due to unforeseen circumstances, we need to confirm your acceptance of the venue change for TechCon 2026 Summit by end of day today (February 4th).
+
+The new venue (Convention Center Hall B) offers 20% more space and better AV capabilities. However, we need your confirmation to secure the booking.
+
+Please respond ASAP.
+
+Best regards,
+TechCon Events Team`,
+    date: '2026-02-04T10:20:00Z',
+    importance: 'high',
+    read: false,
+  },
+  supplierEmail,
+  {
+    id: 'email-010',
+    from: 'billing@azure.microsoft.com',
+    subject: 'Action Required: Payment Method Expiring in 3 Days',
+    body: `Hi,
+
+Your payment method ending in ****4532 will expire on February 7, 2026.
+
+To avoid service interruption, please update your payment information in the Azure portal.
+
+Current monthly charges: $2,847/month
+
+Thank you,
+Microsoft Azure Billing`,
+    date: '2026-02-04T09:15:00Z',
+    importance: 'high',
+    read: false,
+  },
+  {
+    id: 'email-011',
+    from: 'newsletter@industrynews.com',
+    subject: 'Weekly Industry Newsletter - February 4, 2026',
+    body: `Top stories this week:
+• Supply chain resilience strategies
+• New regulations affecting tech sector
+• Market trends Q1 2026
+
+Read more...`,
+    date: '2026-02-04T08:30:00Z',
+    importance: 'low',
+    read: false,
+  },
+  {
+    id: 'email-012',
+    from: 'team@projectalpha.com',
+    subject: 'Project Alpha Status Update',
+    body: `Hi everyone,
+
+Quick update on Project Alpha:
+- Phase 1 completed on schedule
+- Phase 2 kickoff next Monday
+- Budget tracking on target
+
+See attached dashboard for details.
+
+Thanks,
+Project Team`,
+    date: '2026-02-04T08:00:00Z',
+    importance: 'medium',
+    read: false,
   },
   {
     id: 'email-003',
@@ -144,7 +213,7 @@ Marketing Director`,
     read: true,
   },
   {
-    id: 'email-009',
+    id: 'email-021',
     from: 'emily.johnson@tailspintoys.com',
     subject: 'Thank you for the demo!',
     body: `Hello,
@@ -163,7 +232,7 @@ Tailspin Toys`,
     read: true,
   },
   {
-    id: 'email-010',
+    id: 'email-022',
     from: 'finance@company.com',
     subject: 'Expense Report Submitted - Awaiting Approval',
     body: `Your expense report for January 2026 has been submitted and is pending approval.
@@ -179,7 +248,7 @@ Finance Team`,
     read: true,
   },
   {
-    id: 'email-011',
+    id: 'email-023',
     from: 'david.kim@wideworldimporters.com',
     subject: 'RE: Contract Renewal Discussion',
     body: `Hi,
@@ -196,7 +265,7 @@ Wide World Importers`,
     read: true,
   },
   {
-    id: 'email-012',
+    id: 'email-024',
     from: 'noreply@teams.microsoft.com',
     subject: 'You have been added to "Project Phoenix" team',
     body: `You've been added to the Project Phoenix team in Microsoft Teams.
@@ -475,31 +544,31 @@ export const premiumProductCustomers = [
 
 export const initialSuggestions: Suggestion[] = [
   {
-    id: 'sug-001',
-    title: 'Find alternate suppliers',
-    description: 'Search for audio equipment suppliers with faster delivery for PX-500 speakers',
-    confidence: 0.92,
-    icon: 'Search',
+    id: 'sug-003',
+    title: 'Premium speaker upgrade',
+    description: 'Offer clients upgrade to PX-800 Premium speakers with immediate availability',
+    confidence: 0.95,
+    icon: 'ArrowUpload',
   },
   {
     id: 'sug-002',
     title: 'Identify affected events',
     description: 'Analyze event bookings impacted by the 1-week speaker delay',
-    confidence: 0.95,
+    confidence: 0.88,
     icon: 'TaskList',
   },
   {
-    id: 'sug-003',
-    title: 'Premium speaker upgrade',
-    description: 'Offer clients upgrade to PX-800 Premium speakers with immediate availability',
-    confidence: 0.87,
-    icon: 'ArrowUpload',
+    id: 'sug-001',
+    title: 'Find alternate suppliers',
+    description: 'Search for audio suppliers with faster delivery - RISKY: East Coast snowstorm may impact alternate suppliers',
+    confidence: 0.42,
+    icon: 'Search',
   },
   {
     id: 'sug-004',
     title: 'Client notifications',
     description: 'Draft personalized delay notices for affected event clients',
-    confidence: 0.90,
+    confidence: 0.45,
     icon: 'Mail',
   },
 ];
@@ -516,3 +585,8 @@ export const supplierComparisonData = [
   { supplier: 'QuickShip Audio', leadTime: 5, price: 2450, reliability: 92 },
   { supplier: 'SoundWave Pro', leadTime: 7, price: 2400, reliability: 85 },
 ];
+
+// Emails that Copilot has identified as needing immediate attention
+export const urgentEmailIds = ['email-009', 'email-001', 'email-010'];
+
+export const urgentEmails = inboxEmails.filter(email => urgentEmailIds.includes(email.id));

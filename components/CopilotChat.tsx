@@ -44,11 +44,11 @@ export default function CopilotChat({ onReset }: CopilotChatProps) {
       // Simulate AI thinking
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      const affectedData = await mockMCP.queryAffectedOrders('XYZ-789');
+      const affectedData = await mockMCP.queryAffectedOrders('PX-500');
 
       await addStreamingMessage(
         'assistant',
-        "I've analyzed the supplier delay email for Order #PS-2847. The 3-week delay affects part XYZ-789, which is critical for your Industrial Widget A100 product line.\n\nHere are the customers with orders that will be impacted:"
+        "I've analyzed the supplier delay email for Order #SW-2847. The 1-week delay affects the ProSound PX-500 portable speakers due to an East Coast snowstorm.\n\nHere are the upcoming events that will be impacted:"
       );
 
       // Add table of affected customers
@@ -59,10 +59,10 @@ export default function CopilotChat({ onReset }: CopilotChatProps) {
           type: 'table',
           data: {
             columns: [
-              { key: 'name', label: 'Customer', width: 200 },
-              { key: 'orderNumber', label: 'Order #', width: 120 },
-              { key: 'quantity', label: 'Quantity', width: 100 },
-              { key: 'dueDate', label: 'Due Date', width: 120 },
+              { key: 'name', label: 'Event Name', width: 200 },
+              { key: 'orderNumber', label: 'Booking #', width: 120 },
+              { key: 'quantity', label: 'Speakers', width: 100 },
+              { key: 'dueDate', label: 'Event Date', width: 120 },
               { key: 'revenue', label: 'Revenue', width: 120 },
               { key: 'priority', label: 'Priority', width: 100 },
             ],
@@ -80,7 +80,7 @@ export default function CopilotChat({ onReset }: CopilotChatProps) {
           type: 'chart',
           data: {
             type: 'bar',
-            title: 'Revenue at Risk by Customer',
+            title: 'Revenue at Risk by Event',
             data: revenueImpactData,
             xAxisKey: 'customer',
             yAxisKey: 'revenue',
@@ -90,7 +90,7 @@ export default function CopilotChat({ onReset }: CopilotChatProps) {
 
       await addStreamingMessage(
         'assistant',
-        'Total revenue at risk: $225,000 across 3 customer orders.\n\nWhat would you like to do? I can help you:'
+        'Total revenue at risk: $225,000 across 3 upcoming events.\n\nWhat would you like to do? I can help you:'
       );
 
       // Add action buttons
@@ -101,9 +101,9 @@ export default function CopilotChat({ onReset }: CopilotChatProps) {
           type: 'actions',
           data: {
             actions: [
-              { id: 'find-suppliers', label: 'Find Alternate Suppliers', variant: 'primary' },
-              { id: 'upgrade-premium', label: 'Explore Premium Upgrade', variant: 'secondary' },
-              { id: 'notify-customers', label: 'Draft Customer Notifications', variant: 'outline' },
+              { id: 'find-suppliers', label: 'Find Alternate Equipment Suppliers', variant: 'primary' },
+              { id: 'upgrade-premium', label: 'Explore Premium Speaker Upgrade', variant: 'secondary' },
+              { id: 'notify-customers', label: 'Draft Client Notifications', variant: 'outline' },
             ],
           },
         },
@@ -161,15 +161,15 @@ export default function CopilotChat({ onReset }: CopilotChatProps) {
   const handleActionClick = async (actionId: string) => {
     if (conversationStep === 1) {
       if (actionId === 'find-suppliers') {
-        await addMessage({ role: 'user', content: 'Find alternate suppliers for part XYZ-789' });
+        await addMessage({ role: 'user', content: 'Find alternate suppliers for ProSound PX-500 speakers' });
 
         setIsTyping(true);
-        const suppliers = await mockMCP.queryAlternateSuppliers('XYZ-789');
+        const suppliers = await mockMCP.queryAlternateSuppliers('PX-500');
         setIsTyping(false);
 
         await addStreamingMessage(
           'assistant',
-          "I've searched our supplier database and found 3 certified alternate suppliers who can provide part XYZ-789 with faster lead times:"
+          "I've searched our audio equipment network and found 3 certified suppliers who can deliver PX-500 speakers with faster lead times:"
         );
 
         await addMessage({
@@ -210,7 +210,7 @@ export default function CopilotChat({ onReset }: CopilotChatProps) {
 
         await addStreamingMessage(
           'assistant',
-          'Premium Parts Co. offers the fastest delivery (5 days) with 98% reliability. Would you like to proceed with them, or explore other options?'
+          'AudioPro Express offers the fastest delivery (3 days) with 98% reliability. Would you like to proceed with them, or explore other options?'
         );
 
         await addMessage({
@@ -220,8 +220,8 @@ export default function CopilotChat({ onReset }: CopilotChatProps) {
             type: 'actions',
             data: {
               actions: [
-                { id: 'select-premium-parts', label: 'Select Premium Parts Co.', variant: 'primary' },
-                { id: 'upgrade-premium', label: 'Explore Premium Upgrade Instead', variant: 'secondary' },
+                { id: 'select-premium-parts', label: 'Select AudioPro Express', variant: 'primary' },
+                { id: 'upgrade-premium', label: 'Explore Premium Speaker Upgrade Instead', variant: 'secondary' },
               ],
             },
           },
@@ -244,7 +244,7 @@ export default function CopilotChat({ onReset }: CopilotChatProps) {
   };
 
   const handleUpgradeFlow = async () => {
-    await addMessage({ role: 'user', content: 'What about upgrading customers to the premium product?' });
+    await addMessage({ role: 'user', content: 'What about upgrading clients to the premium speakers?' });
 
     setIsTyping(true);
     const upgradeOptions = await mockMCP.getPremiumUpgradeOptions();
@@ -252,7 +252,7 @@ export default function CopilotChat({ onReset }: CopilotChatProps) {
 
     await addStreamingMessage(
       'assistant',
-      "Great idea! I've analyzed which customers would benefit from upgrading to the Industrial Widget A200 Premium. This product is in stock and exceeds A100 specifications:"
+      "Great idea! I've analyzed which events would benefit from upgrading to the ProSound PX-800 Premium speakers. These are in stock and offer superior audio quality compared to the PX-500:"
     );
 
     await addMessage({
@@ -262,8 +262,8 @@ export default function CopilotChat({ onReset }: CopilotChatProps) {
         type: 'table',
         data: {
           columns: [
-            { key: 'name', label: 'Customer', width: 200 },
-            { key: 'currentProduct', label: 'Current Product', width: 180 },
+            { key: 'name', label: 'Event', width: 200 },
+            { key: 'currentProduct', label: 'Current Order', width: 180 },
             { key: 'upgradeProduct', label: 'Upgrade To', width: 180 },
             { key: 'additionalCost', label: 'Additional Cost', width: 140 },
             { key: 'eligible', label: 'Eligible', width: 100 },
@@ -278,7 +278,7 @@ export default function CopilotChat({ onReset }: CopilotChatProps) {
 
     await addStreamingMessage(
       'assistant',
-      'Both customers are eligible for the upgrade. The A200 Premium offers:\n\n• Immediate availability (no delay)\n• Enhanced performance specifications\n• Extended 3-year warranty\n• Priority support\n\nWould you like to approve this upgrade for any customers?'
+      'Both events are eligible for the upgrade. The PX-800 Premium offers:\n\n• Immediate availability (no delay)\n• Superior sound quality and coverage\n• Extended warranty and support\n• Professional-grade features\n\nWould you like to approve this upgrade for any events?'
     );
 
     await addMessage({
@@ -288,8 +288,8 @@ export default function CopilotChat({ onReset }: CopilotChatProps) {
         type: 'actions',
         data: {
           actions: [
-            { id: 'approve-CUST-001', label: 'Approve for Contoso Manufacturing', variant: 'primary' },
-            { id: 'approve-CUST-002', label: 'Approve for Fabrikam Industries', variant: 'primary' },
+            { id: 'approve-CUST-001', label: 'Approve for TechCon 2026 Summit', variant: 'primary' },
+            { id: 'approve-CUST-002', label: 'Approve for City Music Festival', variant: 'primary' },
           ],
         },
       },

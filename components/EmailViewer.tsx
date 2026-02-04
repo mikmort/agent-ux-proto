@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Email } from '@/lib/types';
-import { Button, Text } from '@fluentui/react-components';
+import { Button, Text, Input, Divider } from '@fluentui/react-components';
 import {
   Mail24Filled,
   Mail24Regular,
@@ -17,8 +17,19 @@ import {
   Archive24Regular,
   Flag24Regular,
   Folder24Regular,
-  InboxArrowDown24Regular,
   MailInbox24Filled,
+  Search20Regular,
+  ArrowReply24Regular,
+  ArrowReplyAll24Regular,
+  Share24Regular,
+  MoreHorizontal24Regular,
+  Pin24Regular,
+  Print24Regular,
+  ArrowUndo24Regular,
+  ArrowRedo24Regular,
+  ChevronDown20Regular,
+  Tag24Regular,
+  MailRead24Regular,
 } from '@fluentui/react-icons';
 import { inboxEmails } from '@/lib/mockData';
 
@@ -30,48 +41,129 @@ interface EmailViewerProps {
 export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
   const [selectedEmailId, setSelectedEmailId] = useState(email.id);
   const [foldersExpanded, setFoldersExpanded] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const selectedEmail = inboxEmails.find((e) => e.id === selectedEmailId) || email;
   const isSupplierEmail = selectedEmail.id === 'email-001';
 
+  const filteredEmails = inboxEmails.filter(
+    (e) =>
+      searchQuery === '' ||
+      e.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      e.from.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      e.body.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const unreadCount = filteredEmails.filter((e) => !e.read).length;
+
   return (
     <div className="h-screen flex flex-col bg-white">
-      {/* Top Ribbon */}
+      {/* Top Title Bar */}
+      <div className="bg-blue-700 px-4 py-1 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Mail24Filled className="text-white" />
+          <Text size={300} weight="semibold" className="text-white">
+            Outlook
+          </Text>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button appearance="subtle" size="small" className="text-white hover:bg-blue-600">
+            <ArrowUndo24Regular />
+          </Button>
+          <Button appearance="subtle" size="small" className="text-white hover:bg-blue-600">
+            <ArrowRedo24Regular />
+          </Button>
+        </div>
+      </div>
+
+      {/* Ribbon Tabs */}
+      <div className="border-b border-gray-300 bg-white">
+        <div className="flex items-center gap-6 px-4 py-1">
+          <Text size={300} weight="semibold" className="text-blue-600 border-b-2 border-blue-600 pb-1">
+            Home
+          </Text>
+          <Text size={300} className="text-gray-600 pb-1 cursor-pointer hover:text-blue-600">
+            View
+          </Text>
+          <Text size={300} className="text-gray-600 pb-1 cursor-pointer hover:text-blue-600">
+            Help
+          </Text>
+        </div>
+      </div>
+
+      {/* Ribbon Commands */}
       <div className="border-b border-gray-200 bg-gray-50">
         <div className="flex items-center gap-1 px-4 py-2">
-          <Button appearance="subtle" icon={<Send24Regular />} size="small">
+          <Button appearance="primary" icon={<Send24Regular />} size="small">
             New Email
           </Button>
+          <Divider vertical className="mx-1 h-6" />
           <Button appearance="subtle" icon={<Delete24Regular />} size="small">
             Delete
           </Button>
           <Button appearance="subtle" icon={<Archive24Regular />} size="small">
             Archive
           </Button>
+          <Button appearance="subtle" size="small">
+            Junk
+            <ChevronDown20Regular />
+          </Button>
+          <Divider vertical className="mx-1 h-6" />
+          <Button appearance="subtle" icon={<ArrowReply24Regular />} size="small">
+            Reply
+          </Button>
+          <Button appearance="subtle" icon={<ArrowReplyAll24Regular />} size="small">
+            Reply All
+          </Button>
+          <Button appearance="subtle" icon={<Share24Regular />} size="small">
+            Forward
+          </Button>
+          <Divider vertical className="mx-1 h-6" />
+          <Button appearance="subtle" icon={<MailRead24Regular />} size="small">
+            Read/Unread
+          </Button>
           <Button appearance="subtle" icon={<Flag24Regular />} size="small">
             Flag
           </Button>
-          <div className="ml-auto flex items-center gap-2">
-            <Text size={300} className="text-gray-600">
-              Outlook
-            </Text>
-          </div>
+          <Button appearance="subtle" icon={<Tag24Regular />} size="small">
+            Categorize
+          </Button>
+          <Button appearance="subtle" icon={<Pin24Regular />} size="small">
+            Pin
+          </Button>
+          <Divider vertical className="mx-1 h-6" />
+          <Button appearance="subtle" icon={<Print24Regular />} size="small">
+            Print
+          </Button>
+          <Button appearance="subtle" icon={<MoreHorizontal24Regular />} size="small" />
         </div>
+      </div>
+
+      {/* Search Bar */}
+      <div className="border-b border-gray-200 bg-white px-4 py-2">
+        <Input
+          placeholder="Search in mail"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          contentBefore={<Search20Regular />}
+          className="w-full max-w-md"
+          size="medium"
+        />
       </div>
 
       <div className="flex flex-1 overflow-hidden">
         {/* Module Switcher - Far Left */}
         <div className="w-14 bg-blue-700 flex flex-col items-center py-4 gap-4">
-          <button className="p-2 rounded hover:bg-blue-600 transition-colors">
+          <button className="p-2 rounded hover:bg-blue-600 transition-colors" aria-label="Mail">
             <Mail24Filled className="text-white" />
           </button>
-          <button className="p-2 rounded hover:bg-blue-600 transition-colors opacity-60">
+          <button className="p-2 rounded hover:bg-blue-600 transition-colors opacity-60" aria-label="Calendar">
             <Calendar24Regular className="text-white" />
           </button>
-          <button className="p-2 rounded hover:bg-blue-600 transition-colors opacity-60">
+          <button className="p-2 rounded hover:bg-blue-600 transition-colors opacity-60" aria-label="People">
             <People24Regular className="text-white" />
           </button>
-          <button className="p-2 rounded hover:bg-blue-600 transition-colors opacity-60">
+          <button className="p-2 rounded hover:bg-blue-600 transition-colors opacity-60" aria-label="Tasks">
             <List24Regular className="text-white" />
           </button>
         </div>
@@ -92,7 +184,7 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
                   Inbox
                 </Text>
                 <Text size={200} className="ml-auto">
-                  1
+                  {unreadCount}
                 </Text>
               </div>
             </div>
@@ -116,10 +208,10 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
             {foldersExpanded && (
               <div className="space-y-1 pl-4">
                 <div className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 cursor-pointer">
-                  <InboxArrowDown24Regular className="text-gray-600" />
+                  <Mail24Regular className="text-gray-600" />
                   <Text size={300}>Inbox</Text>
                   <Text size={200} className="ml-auto text-gray-500">
-                    7
+                    {inboxEmails.length}
                   </Text>
                 </div>
                 <div className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 cursor-pointer">
@@ -138,6 +230,10 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
                   <Folder24Regular className="text-gray-600" />
                   <Text size={300}>Archive</Text>
                 </div>
+                <div className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 cursor-pointer">
+                  <Folder24Regular className="text-gray-600" />
+                  <Text size={300}>Junk Email</Text>
+                </div>
               </div>
             )}
           </div>
@@ -145,14 +241,17 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
 
         {/* Email List - Middle */}
         <div className="w-96 border-r border-gray-200 overflow-y-auto">
-          <div className="border-b border-gray-200 px-4 py-3 bg-gray-50">
+          <div className="border-b border-gray-200 px-4 py-3 bg-gray-50 flex items-center justify-between">
             <Text weight="semibold" size={400}>
               Inbox
+            </Text>
+            <Text size={200} className="text-gray-500">
+              {unreadCount} unread
             </Text>
           </div>
 
           <div className="divide-y divide-gray-200">
-            {inboxEmails.map((emailItem) => (
+            {filteredEmails.map((emailItem) => (
               <div
                 key={emailItem.id}
                 onClick={() => setSelectedEmailId(emailItem.id)}
@@ -176,7 +275,7 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
                         {emailItem.from}
                       </Text>
                       {emailItem.importance === 'high' && (
-                        <span className="text-red-600 text-xs">!</span>
+                        <span className="text-red-600 text-xs font-bold">!</span>
                       )}
                     </div>
                     <Text
@@ -200,6 +299,14 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
               </div>
             ))}
           </div>
+
+          {filteredEmails.length === 0 && (
+            <div className="px-4 py-8 text-center">
+              <Text size={300} className="text-gray-500">
+                No emails found matching &quot;{searchQuery}&quot;
+              </Text>
+            </div>
+          )}
         </div>
 
         {/* Reading Pane - Right */}

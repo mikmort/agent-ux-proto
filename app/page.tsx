@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import BusinessCentralSalesOrder from '@/components/BusinessCentralSalesOrder';
 import EmailViewer from '@/components/EmailViewer';
 import CopilotSuggestions from '@/components/CopilotSuggestions';
 import CopilotChat from '@/components/CopilotChat';
@@ -12,6 +13,10 @@ export default function Home() {
     stage: 'email',
     conversationStep: 0,
   });
+
+  const handleAskCopilotFromSalesOrder = () => {
+    setDemoState({ stage: 'suggestions', conversationStep: 0 });
+  };
 
   const handleAskCopilot = () => {
     setDemoState({ stage: 'suggestions', conversationStep: 0 });
@@ -27,6 +32,10 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50">
+      {demoState.stage === 'salesOrder' && (
+        <BusinessCentralSalesOrder onAskCopilot={handleAskCopilotFromSalesOrder} />
+      )}
+
       {demoState.stage === 'email' && (
         <EmailViewer email={supplierEmail} onAskCopilot={handleAskCopilot} />
       )}

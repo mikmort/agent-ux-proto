@@ -121,6 +121,248 @@ View details in Microsoft 365.`,
     importance: 'low',
     read: true,
   },
+  {
+    id: 'email-008',
+    from: 'michael.brown@adventureworks.com',
+    subject: 'Budget Approval Request - Marketing Campaign Q1',
+    body: `Hi,
+
+I'm requesting approval for the Q1 marketing campaign budget of $45,000.
+
+Key allocations:
+- Digital advertising: $20,000
+- Content creation: $15,000
+- Events and sponsorships: $10,000
+
+Please review the attached proposal and let me know if you have any questions.
+
+Best regards,
+Michael Brown
+Marketing Director`,
+    date: '2026-02-02T15:30:00Z',
+    importance: 'high',
+    read: true,
+  },
+  {
+    id: 'email-009',
+    from: 'emily.johnson@tailspintoys.com',
+    subject: 'Thank you for the demo!',
+    body: `Hello,
+
+Thank you for the excellent product demonstration yesterday. Our team was very impressed with the features and capabilities.
+
+We'd like to schedule a follow-up meeting to discuss implementation details and pricing.
+
+Are you available next Tuesday or Wednesday?
+
+Best,
+Emily Johnson
+Tailspin Toys`,
+    date: '2026-02-02T13:20:00Z',
+    importance: 'medium',
+    read: true,
+  },
+  {
+    id: 'email-010',
+    from: 'finance@company.com',
+    subject: 'Expense Report Submitted - Awaiting Approval',
+    body: `Your expense report for January 2026 has been submitted and is pending approval.
+
+Total amount: $1,247.85
+
+You can track the status in the Finance Portal.
+
+Thank you,
+Finance Team`,
+    date: '2026-02-02T10:45:00Z',
+    importance: 'low',
+    read: true,
+  },
+  {
+    id: 'email-011',
+    from: 'david.kim@wideworldimporters.com',
+    subject: 'RE: Contract Renewal Discussion',
+    body: `Hi,
+
+Following up on our contract renewal discussion from last week. We're ready to move forward with the 3-year renewal option.
+
+Can you send over the updated contract documents?
+
+Thanks,
+David Kim
+Wide World Importers`,
+    date: '2026-02-01T16:00:00Z',
+    importance: 'high',
+    read: true,
+  },
+  {
+    id: 'email-012',
+    from: 'noreply@teams.microsoft.com',
+    subject: 'You have been added to "Project Phoenix" team',
+    body: `You've been added to the Project Phoenix team in Microsoft Teams.
+
+Team owner: Sarah Chen
+Members: 12
+
+Visit the team to see shared files, conversations, and more.`,
+    date: '2026-02-01T14:15:00Z',
+    importance: 'low',
+    read: true,
+  },
+  {
+    id: 'email-013',
+    from: 'rachel.green@proseware.com',
+    subject: 'Product Demo Scheduled - February 10th',
+    body: `Hello,
+
+This is to confirm our product demonstration scheduled for:
+
+Date: February 10, 2026
+Time: 2:00 PM - 3:30 PM (EST)
+Location: Virtual (Teams link to follow)
+
+Looking forward to showing you our latest features!
+
+Best regards,
+Rachel Green
+Proseware Inc.`,
+    date: '2026-02-01T11:30:00Z',
+    importance: 'medium',
+    read: true,
+  },
+  {
+    id: 'email-014',
+    from: 'it-helpdesk@company.com',
+    subject: 'System Maintenance - This Sunday',
+    body: `Dear Team,
+
+We will be performing scheduled system maintenance this Sunday, February 8th from 2:00 AM to 6:00 AM EST.
+
+The following systems will be unavailable:
+- Email (Outlook Web Access)
+- Dynamics 365
+- SharePoint Online
+
+Please plan accordingly. We apologize for any inconvenience.
+
+IT Helpdesk`,
+    date: '2026-01-31T17:00:00Z',
+    importance: 'medium',
+    read: true,
+  },
+  {
+    id: 'email-015',
+    from: 'jennifer.lopez@lucernepublishing.com',
+    subject: 'Invoice #INV-2026-0234',
+    body: `Dear Accounting,
+
+Please find attached invoice #INV-2026-0234 for services rendered in January 2026.
+
+Amount due: $12,500.00
+Due date: February 28, 2026
+
+Payment can be made via wire transfer or check.
+
+Thank you,
+Jennifer Lopez
+Lucerne Publishing`,
+    date: '2026-01-31T14:20:00Z',
+    importance: 'medium',
+    read: true,
+  },
+  {
+    id: 'email-016',
+    from: 'newsletter@techinsights.com',
+    subject: 'Tech Insights Weekly - AI Trends & Cloud Computing',
+    body: `This week in technology:
+
+📱 AI Integration in Enterprise Software
+☁️ Cloud Cost Optimization Strategies
+🔒 Cybersecurity Best Practices 2026
+🚀 Emerging Technologies to Watch
+
+Read the full newsletter →`,
+    date: '2026-01-31T09:00:00Z',
+    importance: 'low',
+    read: true,
+  },
+  {
+    id: 'email-017',
+    from: 'alex.morgan@blueyonderairlines.com',
+    subject: 'Travel Itinerary - Chicago Trip',
+    body: `Your travel arrangements have been confirmed:
+
+Flight: Blue Yonder Airlines #BY-1523
+Date: February 15, 2026
+Departure: 7:45 AM (JFK) → Arrival: 9:30 AM (ORD)
+
+Hotel: Chicago Marriott Downtown
+Check-in: February 15 | Check-out: February 17
+
+Have a great trip!`,
+    date: '2026-01-30T16:30:00Z',
+    importance: 'medium',
+    read: true,
+  },
+  {
+    id: 'email-018',
+    from: 'robert.williams@wingtiptoys.com',
+    subject: 'Quarterly Business Review - Action Items',
+    body: `Team,
+
+Thank you for a productive QBR session yesterday. Here are the key action items:
+
+1. Complete competitive analysis by Feb 10
+2. Update pricing strategy document
+3. Schedule customer advisory board meeting
+4. Review product roadmap priorities
+
+Please update the tracker as you complete these items.
+
+Robert Williams
+VP of Sales`,
+    date: '2026-01-30T13:45:00Z',
+    importance: 'high',
+    read: true,
+  },
+  {
+    id: 'email-019',
+    from: 'amanda.clark@fourthcoffee.com',
+    subject: 'Catering for Office Event - February 20',
+    body: `Hi,
+
+Thank you for choosing Fourth Coffee for your office event catering!
+
+Order Summary:
+- Gourmet coffee service for 50 people
+- Pastry assortment
+- Lunch buffet setup
+
+Delivery time: February 20, 11:00 AM
+
+Looking forward to serving you!
+
+Amanda Clark
+Fourth Coffee Catering`,
+    date: '2026-01-30T10:15:00Z',
+    importance: 'low',
+    read: true,
+  },
+  {
+    id: 'email-020',
+    from: 'security@company.com',
+    subject: 'Security Alert: Password Expiration',
+    body: `Your password will expire in 7 days.
+
+Please change your password before February 11, 2026 to avoid account lockout.
+
+To change your password, visit the IT Portal.
+
+Security Team`,
+    date: '2026-01-29T16:00:00Z',
+    importance: 'medium',
+    read: true,
+  },
 ];
 
 export const affectedCustomers: Customer[] = [

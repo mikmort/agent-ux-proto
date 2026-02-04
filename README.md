@@ -39,36 +39,49 @@ A supplier sends an email about a 3-week delay on a critical component. The demo
 
 ## Demo Flow
 
-### Stage 1: Email Viewer
-- View an unread supplier delay email
-- Click "Ask Copilot for Help" to get AI assistance
+### Stage 1: Business Central Sales Order
+- View a Dynamics 365 Business Central sales order for TechCon 2026 Summit event
+- See detailed order lines including:
+  - 50x ProSound PX-500 Portable Speakers (highlighted item)
+  - Professional projectors, screens, microphones
+  - Audio mixing equipment and stage lighting
+  - Event setup and technical support services
+- Review order totals: $174,865 (including items and services)
+- Click "Ask Copilot" button in the action ribbon to get AI assistance
 
 ### Stage 2: AI Suggestions
-- See 4 AI-generated suggestions with confidence scores
-- Each suggestion addresses a different aspect of the problem
+- AI analyzes the sales order and recent supplier communications
+- See 4 AI-generated suggestions with confidence scores:
+  - Find alternate audio equipment suppliers
+  - Identify affected event bookings
+  - Explore premium speaker upgrades
+  - Draft client notifications
+- Each suggestion addresses a different aspect of the equipment delay
 - Click "Start Chat with Copilot" to dive deeper
 
 ### Stage 3: Interactive Chat
 The chat demonstrates several key UX patterns:
 
 1. **Automatic Analysis**: AI immediately analyzes the situation and shows:
-   - Table of affected customers
-   - Revenue impact chart
+   - Table of affected events (TechCon Summit, Music Festival, Awards Gala)
+   - Revenue impact chart ($225,000 at risk)
    - Action buttons for next steps
 
 2. **Find Alternate Suppliers**:
-   - AI searches supplier database
+   - AI searches audio equipment supplier network
    - Shows comparison table with lead times, pricing, reliability
    - Visualizes supplier comparison in a chart
+   - Recommends AudioPro Express (3-day delivery)
 
-3. **Premium Product Upgrade**:
-   - AI analyzes which customers can upgrade to in-stock premium product
-   - Shows upgrade eligibility and costs
-   - Generate approval buttons per customer
+3. **Premium Speaker Upgrade**:
+   - AI analyzes which events can upgrade to PX-800 Premium speakers
+   - Shows upgrade eligibility and additional costs
+   - Highlights benefits: immediate availability, superior sound quality
+   - Generate approval buttons per event
 
 4. **Email Generation**:
-   - AI drafts personalized customer communications
-   - Shows email preview
+   - AI drafts personalized event coordinator communications
+   - Shows email preview with event-specific details
    - Offers send or edit options
 
 ## Key Features
@@ -99,9 +112,10 @@ Optimized for desktop viewing with clean, professional design.
 agent-ux-proto/
 ├── app/
 │   ├── layout.tsx           # Root layout with Fluent UI provider
-│   ├── page.tsx             # Main demo orchestrator
+│   ├── page.tsx             # Main demo orchestrator (4 stages)
 │   └── globals.css          # Global styles
 ├── components/
+│   ├── BusinessCentralSalesOrder.tsx  # Dynamics BC sales order UI
 │   ├── EmailViewer.tsx      # Email inbox interface
 │   ├── CopilotSuggestions.tsx  # AI suggestion cards
 │   ├── CopilotChat.tsx      # Main chat interface

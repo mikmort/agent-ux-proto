@@ -71,7 +71,7 @@ export interface TableData {
 export interface ChartData {
   type: 'bar' | 'line' | 'pie';
   title: string;
-  data: { name: string; value: number; [key: string]: any }[];
+  data: { [key: string]: any }[];
   xAxisKey?: string;
   yAxisKey?: string;
 }
@@ -98,6 +98,6 @@ export interface FormData {
 }
 
 export interface DemoState {
-  stage: 'email' | 'suggestions' | 'chat';
+  stage: 'salesOrder' | 'email' | 'suggestions' | 'chat';
   conversationStep: number;
 }

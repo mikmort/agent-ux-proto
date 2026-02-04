@@ -12,17 +12,17 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Mock MCP service to simulate Dynamics 365, SharePoint, and Teams integrations
 export const mockMCP = {
-  // Query Dynamics 365 for affected customer orders
+  // Query Dynamics 365 for affected event bookings
   async queryAffectedOrders(partNumber: string): Promise<typeof affectedCustomers> {
     await delay(1500);
-    console.log(`[MCP] Querying Dynamics 365 for orders affected by ${partNumber}`);
+    console.log(`[MCP] Querying Dynamics 365 for events affected by ${partNumber} equipment delay`);
     return affectedCustomers;
   },
 
-  // Query for alternate suppliers
+  // Query for alternate audio equipment suppliers
   async queryAlternateSuppliers(partNumber: string): Promise<typeof alternateSuppliers> {
     await delay(1800);
-    console.log(`[MCP] Searching supplier database for ${partNumber} alternatives`);
+    console.log(`[MCP] Searching audio equipment supplier network for ${partNumber} alternatives`);
     return alternateSuppliers;
   },
 
@@ -36,17 +36,17 @@ export const mockMCP = {
     return inventoryData;
   },
 
-  // Get premium product upgrade options
+  // Get premium speaker upgrade options
   async getPremiumUpgradeOptions(): Promise<typeof premiumProductCustomers> {
     await delay(1600);
-    console.log(`[MCP] Analyzing premium product upgrade eligibility`);
+    console.log(`[MCP] Analyzing premium speaker upgrade eligibility for events`);
     return premiumProductCustomers;
   },
 
   // Calculate revenue impact
   async calculateRevenueImpact(customerIds: string[]): Promise<typeof revenueImpactData> {
     await delay(1400);
-    console.log(`[MCP] Calculating revenue impact for ${customerIds.length} customers`);
+    console.log(`[MCP] Calculating revenue impact for ${customerIds.length} events`);
     return revenueImpactData;
   },
 
@@ -63,26 +63,27 @@ export const mockMCP = {
     console.log(`[MCP] Generating personalized email for ${customerId}`);
 
     const customer = affectedCustomers.find((c) => c.id === customerId);
-    if (!customer) return 'Error: Customer not found';
+    if (!customer) return 'Error: Event not found';
 
-    return `Subject: Important Update on Your Order ${customer.orderNumber}
+    return `Subject: Important Update - ${customer.name} Audio Equipment
 
-Dear ${customer.name} Team,
+Dear ${customer.name} Event Coordinator,
 
-I wanted to reach out personally regarding your order for ${customer.quantity} units of ${customer.product} (Order #${customer.orderNumber}).
+I wanted to reach out personally regarding your audio equipment booking for ${customer.quantity} ProSound PX-500 speakers (Booking #${customer.orderNumber}).
 
-Due to a supply chain delay with a critical component, we're offering you an exclusive upgrade to our Premium A200 model at a reduced additional cost. This upgraded product:
+Due to an East Coast snowstorm affecting our supplier's distribution network, we're offering you an exclusive upgrade to our ProSound PX-800 Premium speaker systems at a reduced additional cost. These premium speakers offer:
 
-✓ Is available for immediate shipment
-✓ Exceeds the specifications of the original A100 model
-✓ Comes with extended warranty coverage
+✓ Immediate availability - your event will not be delayed
+✓ Superior sound quality with extended coverage range
+✓ Professional-grade features and controls
+✓ Extended warranty and priority technical support
 
-We value your partnership and want to ensure zero disruption to your operations. I'm available to discuss this upgrade or explore other options that work best for your needs.
+We understand how critical audio quality is for your event, and we want to ensure everything runs flawlessly. I'm available to discuss this upgrade or explore other solutions that work best for your event needs.
 
-Please let me know your preference, and I'll expedite the necessary arrangements.
+Please let me know your preference, and I'll expedite all necessary arrangements.
 
 Best regards,
-Your Account Manager`;
+Your Event Production Manager`;
   },
 
   // Simulate approval workflow

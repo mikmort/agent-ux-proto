@@ -537,8 +537,15 @@ Sales: (555) 0123-4567`;
           <Text className="text-white opacity-80">|</Text>
           <Text className="text-white opacity-90">Sales Orders</Text>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Text className="text-white text-sm">Premier Events Production</Text>
+          <button
+            onClick={() => window.location.href = '/?stage=suggestions'}
+            className="text-white hover:bg-[#0096c7] p-1 rounded transition-colors"
+            aria-label="Close and return to Copilot"
+          >
+            <Dismiss24Regular />
+          </button>
         </div>
       </div>
 

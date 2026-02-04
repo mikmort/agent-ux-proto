@@ -196,9 +196,76 @@ export default function CopilotSuggestions({ suggestions, onStartChat }: Copilot
   const [selectedUpgradeOption, setSelectedUpgradeOption] = useState<string>('PX-800');
   const [showWordDocument, setShowWordDocument] = useState(false);
   const [showOutlookEmail, setShowOutlookEmail] = useState(false);
+  const [emailData, setEmailData] = useState<{ to: string; subject: string; body: string } | null>(null);
   const hasRun = useRef(false);
+  const skipAnimations = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const configRef = useRef<HTMLDivElement>(null);
+
+  // Restore state from sessionStorage on mount
+  useEffect(() => {
+    const savedState = sessionStorage.getItem('copilotSuggestionsState');
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+
+        // Only restore if analysis was complete (loading: false and showSuggestions: true)
+        // This prevents hanging on incomplete states
+        if (!parsed.loading && parsed.showSuggestions) {
+          // Map step IDs to their icon components
+          const iconMap: Record<string, any> = {
+            email: Mail24Regular,
+            po: DocumentSearch24Regular,
+            sales: ShoppingBag24Regular,
+            inventory: Box24Regular,
+            suppliers: Building24Regular,
+            alternates: Search24Regular,
+            impact: Money24Regular,
+          };
+
+          // Reconstruct analysis steps with icon components
+          const stepsWithIcons = parsed.analysisSteps.map((step: any) => ({
+            ...step,
+            icon: iconMap[step.id] || Search24Regular,
+          }));
+
+          setLoading(false);
+          setAnalysisSteps(stepsWithIcons);
+          setShowSuggestions(true);
+          setSelectedAction(parsed.selectedAction);
+          setTasks(parsed.tasks);
+          setExpandedTask(parsed.expandedTask);
+          setShowUpgradeConfig(parsed.showUpgradeConfig);
+          setSelectedCustomers(new Set(parsed.selectedCustomers));
+          setSelectedUpgradeOption(parsed.selectedUpgradeOption);
+          hasRun.current = true; // Prevent analysis from running again
+        }
+        // If analysis was incomplete, let it run normally from the start
+      } catch (e) {
+        // If parsing fails, continue with normal flow
+      }
+    }
+  }, []);
+
+  // Save state to sessionStorage whenever it changes
+  useEffect(() => {
+    if (hasRun.current) {
+      // Exclude icon components from saved state (they can't be serialized)
+      const stepsWithoutIcons = analysisSteps.map(({ icon, ...rest }) => rest);
+      const state = {
+        loading,
+        analysisSteps: stepsWithoutIcons,
+        showSuggestions,
+        selectedAction,
+        tasks,
+        expandedTask,
+        showUpgradeConfig,
+        selectedCustomers: Array.from(selectedCustomers),
+        selectedUpgradeOption,
+      };
+      sessionStorage.setItem('copilotSuggestionsState', JSON.stringify(state));
+    }
+  }, [loading, analysisSteps, showSuggestions, selectedAction, tasks, expandedTask, showUpgradeConfig, selectedCustomers, selectedUpgradeOption]);
 
   useEffect(() => {
     // Prevent double execution in React Strict Mode
@@ -213,7 +280,7 @@ export default function CopilotSuggestions({ suggestions, onStartChat }: Copilot
           detail: 'Extracting key information from supplier notification',
           icon: Mail24Regular,
           iconType: 'image' as const,
-          iconSrc: '/outlook-icon.svg',
+          iconSrc: '/outlook-icon.png',
           result: 'Order #SW-2847 • ProSound PX-500 • 1-week delay due to snowstorm',
         },
         {
@@ -239,7 +306,8 @@ export default function CopilotSuggestions({ suggestions, onStartChat }: Copilot
           label: 'Searching Teams chats with customers',
           detail: 'Reviewing conversation history for delivery preferences and past issues',
           icon: ChatSparkle24Regular,
-          iconType: 'component' as const,
+          iconType: 'image' as const,
+          iconSrc: '/teams-icon.png',
           result: 'TechCon team emphasized event date is non-negotiable • Previous successful upgrades with 2 customers',
         },
         {
@@ -256,7 +324,8 @@ export default function CopilotSuggestions({ suggestions, onStartChat }: Copilot
           label: 'Finding policy documents on SharePoint',
           detail: 'Searching for supplier delay procedures and customer communication guidelines',
           icon: Library24Regular,
-          iconType: 'component' as const,
+          iconType: 'image' as const,
+          iconSrc: '/sharepoint-icon.png',
           result: 'Policy SD-204: Offer premium upgrades for Platinum customers • Notify within 24 hours of delay',
         },
         {
@@ -287,6 +356,15 @@ export default function CopilotSuggestions({ suggestions, onStartChat }: Copilot
       ];
 
       for (let i = 0; i < allSteps.length; i++) {
+        // If skip flag is set, immediately complete all remaining steps
+        if (skipAnimations.current) {
+          const remainingSteps = allSteps.slice(i).map(s => ({ ...s, status: 'complete' as const }));
+          setAnalysisSteps(prev => [...prev, ...remainingSteps]);
+          setLoading(false);
+          setShowSuggestions(true);
+          return;
+        }
+
         const step = allSteps[i];
 
         // Add the new step with 'running' status
@@ -370,7 +448,7 @@ export default function CopilotSuggestions({ suggestions, onStartChat }: Copilot
         newItem: `${selectedOption.name} (${customer.currentOrder.quantity} units)`,
         oldPrice: `$${customer.currentOrder.total.toLocaleString()}`,
         newPrice: `$${(customer.currentOrder.quantity * selectedOption.unitPrice).toLocaleString()}`,
-        notes: `Premium upgrade includes ${selectedOption.features.join(', ')}`,
+        notes: `Per Supply Chain Policy SC-145, order modifications exceeding $20,000 require automated documentation. Upgrading equipment to ensure delivery commitments are met per Customer SLA requirements. Premium features include: ${selectedOption.features.join(', ')}.`,
       },
     }));
 
@@ -383,20 +461,20 @@ export default function CopilotSuggestions({ suggestions, onStartChat }: Copilot
         newItem: '',
         oldPrice: '',
         newPrice: '',
-        notes: `Comprehensive report documenting supplier delay, affected customers, upgrade solutions, and revenue impact. Includes approval workflow for management review.`,
+        notes: `Per Supplier Disruption Policy SD-240, all premium upgrades initiated due to supplier delays require formal mitigation documentation for executive review. Report includes: affected customers, financial impact analysis, alternative solutions considered, and risk assessment. Automatically generated in Microsoft Word for management approval workflow.`,
       },
     };
 
     const emailTask: TaskItem = {
       id: 'task-email-notifications',
-      title: `Sending email updates to ${selectedCustomersList.length} customer${selectedCustomersList.length > 1 ? 's' : ''}`,
+      title: `Drafting email updates for ${selectedCustomersList.length} customer${selectedCustomersList.length > 1 ? 's' : ''}`,
       status: 'pending' as const,
       details: {
         oldItem: '',
         newItem: '',
         oldPrice: '',
         newPrice: '',
-        notes: `Personalized email notifications sent via Outlook to: ${selectedCustomersList.map((c) => c.name).join(', ')}. Each email includes order details, upgrade information, and delivery timeline.`,
+        notes: `Per Customer Communication Standard CC-102, all order modifications must be communicated within 4 hours of change. Drafting personalized notifications for: ${selectedCustomersList.map((c) => c.name).join(', ')}. Each email includes updated order details, equipment specifications, revised pricing, and guaranteed delivery timeline. Emails are prepared for your review before sending to maintain customer satisfaction and contractual compliance.`,
       },
     };
 
@@ -527,7 +605,14 @@ export default function CopilotSuggestions({ suggestions, onStartChat }: Copilot
             </button>
           </div>
           <div className="absolute right-6 flex items-center gap-1">
-            <button className="px-3 py-1.5 text-sm text-gray-400 hover:text-gray-300 rounded-md transition-colors">
+            <button
+              className="px-3 py-1.5 text-sm text-gray-400 hover:text-gray-300 rounded-md transition-colors"
+              onClick={() => {
+                if (loading) {
+                  skipAnimations.current = true;
+                }
+              }}
+            >
               Auto
             </button>
             <button className="p-1.5 text-gray-400 hover:text-gray-300 rounded-md transition-colors">
@@ -1005,6 +1090,18 @@ export default function CopilotSuggestions({ suggestions, onStartChat }: Copilot
                                   <Checkmark24Filled className="text-green-500 w-5 h-5" />
                                 )}
                               </div>
+                              {/* App Icon */}
+                              <div className="flex-shrink-0">
+                                {task.id.startsWith('task-cust-') && (
+                                  <img src="/dynamics-business-central.svg" alt="Business Central" className="w-5 h-5" />
+                                )}
+                                {task.id === 'task-mitigation-report' && (
+                                  <img src="/Word_512.png" alt="Word" className="w-5 h-5" />
+                                )}
+                                {task.id === 'task-email-notifications' && (
+                                  <img src="/outlook-icon.png" alt="Outlook" className="w-5 h-5" />
+                                )}
+                              </div>
                               <div className="flex-1">
                                 <p className="text-sm text-white font-medium">{task.title}</p>
                               </div>
@@ -1079,11 +1176,51 @@ export default function CopilotSuggestions({ suggestions, onStartChat }: Copilot
                                   )}
                                   {task.id === 'task-email-notifications' && (
                                     <button
-                                      onClick={() => setShowOutlookEmail(true)}
+                                      onClick={() => {
+                                        // Get the first affected customer for the draft email
+                                        const customer = affectedCustomers[0];
+                                        const upgradeOption = upgradeOptions.find((opt) => opt.id === selectedUpgradeOption) || upgradeOptions[0];
+
+                                        const to = customer.name === 'TechCon 2026 Summit'
+                                          ? 'sarah.mitchell@techcon2026.com'
+                                          : customer.name === 'City Music Festival'
+                                          ? 'events@citymusicfestival.com'
+                                          : 'contact@corporateawards.com';
+
+                                        const subject = `Important Update: Equipment Upgrade for ${customer.eventName}`;
+                                        const body = `Dear ${customer.name} Team,
+
+I hope this message finds you well. I wanted to reach out regarding your upcoming event scheduled for ${customer.eventDate}.
+
+While monitoring our supply chain for your order (Sales Order #${customer.orderNumber}), we identified a potential delay with the originally specified ProSound PX-500 speaker systems due to weather-related shipping disruptions on the East Coast.
+
+To ensure your event runs flawlessly and without any risk of delay, we've proactively upgraded your order to the ${upgradeOption.name}. Here's what this means for your event:
+
+✓ Enhanced audio clarity and power output for superior sound quality
+✓ Better coverage for all attendees across all sessions
+✓ Guaranteed delivery for your event setup date - zero risk of delay
+✓ Premium features including ${upgradeOption.features.slice(0, 2).join(' and ')}
+
+The cost adjustment is $${upgradeOption.unitPrice - customer.currentOrder.unitPrice} per unit (total additional: $${(upgradeOption.unitPrice - customer.currentOrder.unitPrice) * customer.currentOrder.quantity}), which we believe represents excellent value given the enhanced capabilities and the elimination of any delivery risk for your important event.
+
+The upgraded equipment will arrive on schedule, and our technical team will ensure seamless setup and testing prior to your event start.
+
+Please review the updated sales order. If you have any questions or would like to discuss this further, I'm available at your convenience.
+
+We're committed to making ${customer.eventName} an outstanding success.
+
+Best regards,
+James Davis
+Premier Events Production
+Sales: (555) 0123-4567`;
+
+                                        setEmailData({ to, subject, body });
+                                        setShowOutlookEmail(true);
+                                      }}
                                       className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-2"
                                     >
                                       <Mail24Regular className="w-4 h-4" />
-                                      <span>View in Outlook</span>
+                                      <span>Open in Outlook</span>
                                     </button>
                                   )}
                                 </div>
@@ -1149,6 +1286,395 @@ export default function CopilotSuggestions({ suggestions, onStartChat }: Copilot
           </div>
         </div>
       </div>
+
+      {/* Word Document Viewer */}
+      {showWordDocument && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full h-full max-w-7xl max-h-[90vh] flex flex-col rounded-lg shadow-2xl overflow-hidden">
+            {/* Word Header */}
+            <div className="bg-[#2b579a] text-white px-4 py-2 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Notebook24Regular className="w-5 h-5" />
+                <span className="font-semibold text-sm">
+                  Mitigation_Report_EVT-2201.docx - Microsoft Word
+                </span>
+              </div>
+              <button
+                onClick={() => setShowWordDocument(false)}
+                className="text-white hover:bg-blue-700 px-3 py-1 rounded transition-colors text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Word Ribbon */}
+            <div className="bg-[#f3f2f1] border-b border-gray-300 px-4 py-2">
+              <div className="flex items-center gap-4 text-xs text-gray-700">
+                <button className="hover:bg-gray-200 px-2 py-1 rounded">File</button>
+                <button className="hover:bg-gray-200 px-2 py-1 rounded font-semibold">Home</button>
+                <button className="hover:bg-gray-200 px-2 py-1 rounded">Insert</button>
+                <button className="hover:bg-gray-200 px-2 py-1 rounded">Design</button>
+                <button className="hover:bg-gray-200 px-2 py-1 rounded">Layout</button>
+                <button className="hover:bg-gray-200 px-2 py-1 rounded">References</button>
+                <button className="hover:bg-gray-200 px-2 py-1 rounded">Review</button>
+                <button className="hover:bg-gray-200 px-2 py-1 rounded">View</button>
+              </div>
+            </div>
+
+            {/* Document Content */}
+            <div className="flex-1 overflow-y-auto bg-[#e9e9e9] p-8">
+              <div className="bg-white max-w-4xl mx-auto p-12 shadow-lg text-gray-900" style={{ fontFamily: 'Calibri, sans-serif' }}>
+                <div className="bg-[#f3f2f1] p-4 border-l-4 border-[#0078d4] mb-4">
+                  <h1 className="text-2xl font-bold text-[#0078d4] mb-2">
+                    Supplier Delay Mitigation Report
+                  </h1>
+                  <p className="text-sm text-gray-900 mb-1">
+                    <strong>Sales Order:</strong> EVT-2201 | <strong>Customer:</strong> TechCon 2026 Summit
+                  </p>
+                  <p className="text-sm text-gray-900 mb-1">
+                    <strong>Generated:</strong> {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </p>
+                  <p className="text-sm text-gray-900">
+                    <strong>Status:</strong> <span className="text-green-700 font-bold">RESOLVED</span>
+                  </p>
+                </div>
+
+                <div className="mb-6">
+                  <h2 className="text-lg font-bold text-gray-800 mb-2 mt-6">Executive Summary</h2>
+                  <p className="text-sm text-gray-900 leading-relaxed">
+                    This report documents the supplier delay incident for Sales Order EVT-2201 and the mitigation
+                    actions taken by Microsoft Copilot to ensure timely delivery for the TechCon 2026 Summit event.
+                  </p>
+                </div>
+
+                <div className="mb-6">
+                  <h2 className="text-lg font-bold text-gray-800 mb-2 mt-6">Incident Details</h2>
+                  <h3 className="text-base font-bold text-gray-700 mb-2">Original Issue</h3>
+                  <div className="text-sm text-gray-900 leading-relaxed space-y-1">
+                    <p><strong>Supplier:</strong> SoundWave Pro Audio</p>
+                    <p><strong>Order Number:</strong> SW-2847</p>
+                    <p><strong>Issue:</strong> Severe East Coast snowstorm causing delivery delays</p>
+                    <p><strong>Affected Items:</strong> ProSound PX-500 Portable Speaker Systems (50 units)</p>
+                    <p><strong>Original Delivery Date:</strong> February 10, 2026</p>
+                    <p><strong>Revised Delivery Date:</strong> February 17, 2026</p>
+                    <p><strong>Event Date:</strong> February 15, 2026</p>
+                    <p><strong>Impact:</strong> <span className="text-red-700 font-bold">HIGH - Equipment would arrive 2 days after event</span></p>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <h2 className="text-lg font-bold text-gray-800 mb-2 mt-6">Mitigation Actions</h2>
+                  <h3 className="text-base font-bold text-gray-700 mb-2">Automated Analysis</h3>
+                  <p className="text-sm text-gray-900 leading-relaxed mb-2">
+                    Microsoft Copilot analyzed the supplier delay email and automatically identified the following:
+                  </p>
+                  <ul className="text-sm text-gray-900 list-disc list-inside space-y-1 ml-2">
+                    <li>Critical delivery timeline conflict with event date</li>
+                    <li>Customer priority level: High (2,500 attendees expected)</li>
+                    <li>Alternative inventory availability in warehouse systems</li>
+                    <li>Premium upgrade option with immediate availability</li>
+                  </ul>
+
+                  <h3 className="text-base font-bold text-gray-700 mb-2 mt-4">Solution Implemented</h3>
+                  <p className="text-sm text-gray-900 leading-relaxed mb-3">
+                    <strong>Action:</strong> Upgraded speaker system to premium model with immediate availability
+                  </p>
+                  <table className="w-full border-collapse text-sm mb-4">
+                    <thead>
+                      <tr className="bg-[#0078d4] text-white">
+                        <th className="border border-gray-300 px-3 py-2 text-left">Aspect</th>
+                        <th className="border border-gray-300 px-3 py-2 text-left">Original</th>
+                        <th className="border border-gray-300 px-3 py-2 text-left">Updated</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-gray-900">
+                      <tr>
+                        <td className="border border-gray-300 px-3 py-2">Product Model</td>
+                        <td className="border border-gray-300 px-3 py-2">ProSound PX-500 Portable</td>
+                        <td className="border border-gray-300 px-3 py-2">ProSound PX-800 Premium</td>
+                      </tr>
+                      <tr className="bg-gray-50">
+                        <td className="border border-gray-300 px-3 py-2">Quantity</td>
+                        <td className="border border-gray-300 px-3 py-2">50 units</td>
+                        <td className="border border-gray-300 px-3 py-2">50 units</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-gray-300 px-3 py-2">Unit Price</td>
+                        <td className="border border-gray-300 px-3 py-2">$2,500.00</td>
+                        <td className="border border-gray-300 px-3 py-2">$3,000.00</td>
+                      </tr>
+                      <tr className="bg-gray-50">
+                        <td className="border border-gray-300 px-3 py-2">Line Total</td>
+                        <td className="border border-gray-300 px-3 py-2">$125,000.00</td>
+                        <td className="border border-gray-300 px-3 py-2">$150,000.00</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-gray-300 px-3 py-2">Availability</td>
+                        <td className="border border-gray-300 px-3 py-2">February 17, 2026</td>
+                        <td className="border border-gray-300 px-3 py-2">Immediate (In Stock)</td>
+                      </tr>
+                      <tr className="bg-gray-50">
+                        <td className="border border-gray-300 px-3 py-2">Delivery Status</td>
+                        <td className="border border-gray-300 px-3 py-2"><span className="text-red-700 font-bold">At Risk</span></td>
+                        <td className="border border-gray-300 px-3 py-2"><span className="text-green-700 font-bold">Confirmed for Feb 14</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="mb-6">
+                  <h2 className="text-lg font-bold text-gray-800 mb-2 mt-6">Recommendations</h2>
+                  <ol className="text-sm text-gray-900 list-decimal list-inside space-y-2 ml-2">
+                    <li>Approve the upgraded sales order (EVT-2201) with PX-800 Premium speakers</li>
+                    <li>Contact customer to explain the proactive upgrade and value proposition</li>
+                    <li>Confirm delivery schedule with warehouse (Feb 14 setup date)</li>
+                    <li>Review supplier relationship with SoundWave Pro Audio</li>
+                    <li>Consider diversifying speaker equipment suppliers for future events</li>
+                  </ol>
+                </div>
+
+                <div className="mt-8 pt-4 border-t border-gray-300 text-xs text-gray-600">
+                  <p><strong>Report Generated by:</strong> Microsoft Copilot for Dynamics 365 Business Central</p>
+                  <p><strong>Company:</strong> Premier Events Production</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Outlook Email Viewer */}
+      {showOutlookEmail && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full h-full max-w-6xl max-h-[90vh] flex flex-col rounded-lg shadow-2xl overflow-hidden">
+            {/* Outlook Header */}
+            <div className="bg-[#0078d4] text-white px-4 py-2 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Mail24Regular className="w-5 h-5" />
+                <span className="font-semibold text-sm">
+                  Sent Items - Outlook
+                </span>
+              </div>
+              <button
+                onClick={() => setShowOutlookEmail(false)}
+                className="text-white hover:bg-blue-600 px-3 py-1 rounded transition-colors text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Outlook Ribbon */}
+            <div className="bg-[#f3f2f1] border-b border-gray-300 px-4 py-2">
+              <div className="flex items-center gap-4 text-xs text-gray-700">
+                <button className="hover:bg-gray-200 px-2 py-1 rounded">File</button>
+                <button className="hover:bg-gray-200 px-2 py-1 rounded font-semibold">Home</button>
+                <button className="hover:bg-gray-200 px-2 py-1 rounded">Send / Receive</button>
+                <button className="hover:bg-gray-200 px-2 py-1 rounded">Folder</button>
+                <button className="hover:bg-gray-200 px-2 py-1 rounded">View</button>
+              </div>
+            </div>
+
+            {/* Email List and Preview */}
+            <div className="flex-1 flex overflow-hidden">
+              {/* Email List */}
+              <div className="w-80 border-r border-gray-300 bg-[#faf9f8] overflow-y-auto">
+                <div className="p-3 border-b border-gray-300 bg-white">
+                  <h3 className="text-sm font-semibold text-gray-800">Sent Items</h3>
+                  <p className="text-xs text-gray-600">3 items</p>
+                </div>
+
+                <div className="bg-blue-50 border-l-4 border-[#0078d4] p-3 cursor-pointer hover:bg-blue-100 transition-colors">
+                  <div className="flex items-start justify-between mb-1">
+                    <span className="text-sm font-semibold text-gray-900">Sarah Mitchell</span>
+                    <span className="text-xs text-gray-600">Just now</span>
+                  </div>
+                  <p className="text-xs text-gray-800 font-medium mb-1">
+                    Important Update: Equipment Upgrade for TechCon 2026 Summit
+                  </p>
+                  <p className="text-xs text-gray-600 line-clamp-2">
+                    Dear Sarah, I hope this message finds you well. I wanted to reach out regarding your upcoming...
+                  </p>
+                </div>
+
+                <div className="p-3 cursor-pointer hover:bg-gray-100 transition-colors border-b border-gray-200">
+                  <div className="flex items-start justify-between mb-1">
+                    <span className="text-sm font-semibold text-gray-900">Alex Thompson</span>
+                    <span className="text-xs text-gray-600">Just now</span>
+                  </div>
+                  <p className="text-xs text-gray-800 font-medium mb-1">
+                    Important Update: Equipment Upgrade for City Music Festival
+                  </p>
+                  <p className="text-xs text-gray-600 line-clamp-2">
+                    Dear Alex, I hope this message finds you well. I wanted to reach out regarding your upcoming...
+                  </p>
+                </div>
+
+                <div className="p-3 cursor-pointer hover:bg-gray-100 transition-colors border-b border-gray-200">
+                  <div className="flex items-start justify-between mb-1">
+                    <span className="text-sm font-semibold text-gray-900">Jennifer Collins</span>
+                    <span className="text-xs text-gray-600">Just now</span>
+                  </div>
+                  <p className="text-xs text-gray-800 font-medium mb-1">
+                    Important Update: Equipment Upgrade for Corporate Awards Gala
+                  </p>
+                  <p className="text-xs text-gray-600 line-clamp-2">
+                    Dear Jennifer, I hope this message finds you well. I wanted to reach out regarding your upcoming...
+                  </p>
+                </div>
+              </div>
+
+              {/* Email Preview Pane */}
+              <div className="flex-1 overflow-y-auto bg-white">
+                <div className="p-6">
+                  <div className="border-b border-gray-300 pb-4 mb-4">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-3">
+                      Important Update: Equipment Upgrade for TechCon 2026 Summit
+                    </h2>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-start">
+                        <span className="text-gray-600 w-20">From:</span>
+                        <span className="text-gray-900">James Davis &lt;james.davis@premierevents.com&gt;</span>
+                      </div>
+                      <div className="flex items-start">
+                        <span className="text-gray-600 w-20">To:</span>
+                        <span className="text-gray-900">Sarah Mitchell &lt;sarah.mitchell@techcon2026.com&gt;</span>
+                      </div>
+                      <div className="flex items-start">
+                        <span className="text-gray-600 w-20">Sent:</span>
+                        <span className="text-gray-900">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="prose prose-sm max-w-none">
+                    <p className="mb-4">Dear Sarah,</p>
+
+                    <p className="mb-4">
+                      I hope this message finds you well. I wanted to reach out regarding your upcoming TechCon 2026
+                      Summit event scheduled for February 15th.
+                    </p>
+
+                    <p className="mb-4">
+                      While monitoring our supply chain for your order (Sales Order #EVT-2201), we identified a
+                      potential delay with the originally specified ProSound PX-500 speaker systems due to
+                      weather-related shipping disruptions on the East Coast.
+                    </p>
+
+                    <p className="mb-4">
+                      To ensure your event runs flawlessly and without any risk of delay, we've proactively upgraded
+                      your order to the <strong>ProSound PX-800 Premium Speaker System</strong>. Here's what this
+                      means for your event:
+                    </p>
+
+                    <ul className="mb-4 space-y-1">
+                      <li>✓ Enhanced audio clarity and power output for superior sound quality</li>
+                      <li>✓ Better coverage for your 2,500 attendees across all sessions</li>
+                      <li>✓ Guaranteed delivery for your February 14 setup date - zero risk of delay</li>
+                      <li>✓ Premium features including advanced wireless connectivity and DSP processing</li>
+                    </ul>
+
+                    <p className="mb-4">
+                      The cost adjustment is $500 per unit (total additional: $25,000), which we believe represents
+                      excellent value given the enhanced capabilities and the elimination of any delivery risk for
+                      your high-profile event.
+                    </p>
+
+                    <p className="mb-4">
+                      The upgraded equipment will arrive on schedule, and our technical team will ensure seamless
+                      setup and testing prior to your event start.
+                    </p>
+
+                    <p className="mb-4">
+                      Please review the updated sales order attached to this email. If you have any questions or
+                      would like to discuss this further, I'm available at your convenience.
+                    </p>
+
+                    <p className="mb-4">
+                      We're committed to making TechCon 2026 Summit an outstanding success.
+                    </p>
+
+                    <p className="mb-2">Best regards,</p>
+                    <p className="mb-1"><strong>James Davis</strong></p>
+                    <p className="text-sm text-gray-600 mb-0">Premier Events Production</p>
+                    <p className="text-sm text-gray-600">Sales: (555) 0123-4567</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fake Outlook Compose Window */}
+      {showOutlookEmail && emailData && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full h-full max-w-5xl max-h-[90vh] flex flex-col rounded-lg shadow-2xl overflow-hidden">
+            {/* Outlook Header */}
+            <div className="bg-[#0078D4] text-white px-4 py-2 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Mail24Regular className="w-5 h-5" />
+                <span className="font-semibold text-sm">New Message - Outlook</span>
+              </div>
+              <button
+                onClick={() => setShowOutlookEmail(false)}
+                className="text-white hover:bg-blue-700 px-3 py-1 rounded transition-colors text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Outlook Ribbon */}
+            <div className="bg-[#f3f2f1] border-b border-gray-300 px-4 py-2">
+              <div className="flex items-center gap-4 text-xs text-gray-700">
+                <button className="hover:bg-gray-200 px-2 py-1 rounded">Format text</button>
+                <button className="hover:bg-gray-200 px-2 py-1 rounded">Insert</button>
+                <button className="hover:bg-gray-200 px-2 py-1 rounded">Options</button>
+                <div className="flex-1"></div>
+                <button className="bg-[#0078D4] text-white px-4 py-1.5 rounded hover:bg-blue-700 font-semibold">
+                  Send
+                </button>
+              </div>
+            </div>
+
+            {/* Email Form */}
+            <div className="flex-1 overflow-y-auto bg-white">
+              <div className="p-4">
+                {/* To Field */}
+                <div className="flex items-center border-b border-gray-200 py-2">
+                  <span className="text-sm text-gray-700 w-16 font-semibold">To:</span>
+                  <input
+                    type="text"
+                    value={emailData.to}
+                    readOnly
+                    className="flex-1 text-sm px-2 py-1 bg-gray-50 rounded text-gray-900"
+                  />
+                </div>
+
+                {/* Subject Field */}
+                <div className="flex items-center border-b border-gray-200 py-2">
+                  <span className="text-sm text-gray-700 w-16 font-semibold">Subject:</span>
+                  <input
+                    type="text"
+                    value={emailData.subject}
+                    readOnly
+                    className="flex-1 text-sm px-2 py-1 bg-gray-50 rounded text-gray-900"
+                  />
+                </div>
+
+                {/* Email Body */}
+                <div className="mt-4">
+                  <textarea
+                    value={emailData.body}
+                    readOnly
+                    className="w-full h-96 text-sm p-3 border border-gray-200 rounded resize-none font-sans text-gray-900"
+                    style={{ fontFamily: 'Calibri, sans-serif' }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

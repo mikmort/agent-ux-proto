@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import BusinessCentralSalesOrder from '@/components/BusinessCentralSalesOrder';
 import EmailViewer from '@/components/EmailViewer';
 import CopilotSuggestions from '@/components/CopilotSuggestions';
@@ -8,9 +9,12 @@ import CopilotChat from '@/components/CopilotChat';
 import { supplierEmail, initialSuggestions } from '@/lib/mockData';
 import { DemoState } from '@/lib/types';
 
-export default function Home() {
+function HomeContent() {
+  const searchParams = useSearchParams();
+  const stageParam = searchParams.get('stage') as DemoState['stage'] | null;
+
   const [demoState, setDemoState] = useState<DemoState>({
-    stage: 'email',
+    stage: stageParam || 'email',
     conversationStep: 0,
   });
 
@@ -46,5 +50,13 @@ export default function Home() {
 
       {demoState.stage === 'chat' && <CopilotChat onReset={handleReset} />}
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+      <HomeContent />
+    </Suspense>
   );
 }

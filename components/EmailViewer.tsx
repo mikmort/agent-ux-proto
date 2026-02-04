@@ -60,19 +60,29 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
 
   return (
     <div className="h-screen flex flex-col bg-white">
-      {/* Top Title Bar */}
-      <div className="bg-blue-700 px-4 py-1 flex items-center justify-between">
+      {/* Top Title Bar with Search */}
+      <div className="bg-[#0078D4] px-4 py-2 flex items-center gap-4">
         <div className="flex items-center gap-2">
           <Mail24Filled className="text-white" />
           <Text size={300} weight="semibold" className="text-white">
             Outlook
           </Text>
         </div>
+        <div className="flex-1 max-w-md">
+          <Input
+            placeholder="Search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            contentBefore={<Search20Regular />}
+            size="small"
+            className="w-full"
+          />
+        </div>
         <div className="flex items-center gap-2">
-          <Button appearance="subtle" size="small" className="text-white hover:bg-blue-600">
+          <Button appearance="subtle" size="small" className="text-white hover:bg-[#106EBE]">
             <ArrowUndo24Regular />
           </Button>
-          <Button appearance="subtle" size="small" className="text-white hover:bg-blue-600">
+          <Button appearance="subtle" size="small" className="text-white hover:bg-[#106EBE]">
             <ArrowRedo24Regular />
           </Button>
         </div>
@@ -147,31 +157,20 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="border-b border-gray-200 bg-white px-4 py-2">
-        <Input
-          placeholder="Search in mail"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          contentBefore={<Search20Regular />}
-          className="w-full max-w-md"
-          size="medium"
-        />
-      </div>
 
       <div className="flex flex-1 overflow-hidden">
         {/* Module Switcher - Far Left */}
-        <div className="w-14 bg-blue-700 flex flex-col items-center py-4 gap-4">
-          <button className="p-2 rounded hover:bg-blue-600 transition-colors" aria-label="Mail">
+        <div className="w-14 bg-[#0078D4] flex flex-col items-center py-4 gap-4">
+          <button className="p-2 rounded hover:bg-[#106EBE] transition-colors" aria-label="Mail">
             <Mail24Filled className="text-white" />
           </button>
-          <button className="p-2 rounded hover:bg-blue-600 transition-colors opacity-60" aria-label="Calendar">
+          <button className="p-2 rounded hover:bg-[#106EBE] transition-colors opacity-60" aria-label="Calendar">
             <Calendar24Regular className="text-white" />
           </button>
-          <button className="p-2 rounded hover:bg-blue-600 transition-colors opacity-60" aria-label="People">
+          <button className="p-2 rounded hover:bg-[#106EBE] transition-colors opacity-60" aria-label="People">
             <People24Regular className="text-white" />
           </button>
-          <button className="p-2 rounded hover:bg-blue-600 transition-colors opacity-60" aria-label="Tasks">
+          <button className="p-2 rounded hover:bg-[#106EBE] transition-colors opacity-60" aria-label="Tasks">
             <List24Regular className="text-white" />
           </button>
         </div>
@@ -319,7 +318,7 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
 
         {/* Reading Pane - Right */}
         <div className="flex-1 overflow-y-auto bg-white">
-          <div className="max-w-5xl mx-auto px-8 py-6">
+          <div className="max-w-5xl mx-auto px-6 py-4">
             {/* Email Header */}
             <div className="mb-6">
               {/* Subject Line */}

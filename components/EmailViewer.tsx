@@ -31,7 +31,7 @@ import {
   Tag24Regular,
   MailRead24Regular,
 } from '@fluentui/react-icons';
-import { inboxEmails } from '@/lib/mockData';
+import { inboxEmails, urgentEmails } from '@/lib/mockData';
 
 interface EmailViewerProps {
   email: Email;
@@ -39,9 +39,11 @@ interface EmailViewerProps {
 }
 
 export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
-  const [selectedEmailId, setSelectedEmailId] = useState(email.id);
+  // Default to the Q1 Sales Meeting email (non-urgent) so users discover urgent emails via the alert
+  const [selectedEmailId, setSelectedEmailId] = useState('email-002');
   const [foldersExpanded, setFoldersExpanded] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showUrgentPanel, setShowUrgentPanel] = useState(false);
 
   const selectedEmail = inboxEmails.find((e) => e.id === selectedEmailId) || email;
   const isSupplierEmail = selectedEmail.id === 'email-001';
@@ -317,65 +319,132 @@ export default function EmailViewer({ email, onAskCopilot }: EmailViewerProps) {
 
         {/* Reading Pane - Right */}
         <div className="flex-1 overflow-y-auto bg-white">
-          <div className="max-w-4xl mx-auto p-6">
-            <div className="space-y-4">
-              {/* Email Header */}
-              <div className="border-b pb-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <Text weight="semibold" size={600} className="block mb-2">
-                      {selectedEmail.subject}
-                    </Text>
-                    {selectedEmail.importance === 'high' && (
-                      <span className="px-2 py-1 rounded text-xs font-semibold bg-red-100 text-red-800">
-                        HIGH IMPORTANCE
-                      </span>
-                    )}
-                  </div>
-                </div>
+          <div className="max-w-5xl mx-auto px-8 py-6">
+            {/* Email Header */}
+            <div className="mb-6">
+              {/* Subject Line */}
+              <div className="mb-4">
+                <h1 className="text-2xl font-semibold text-gray-900 mb-2">
+                  {selectedEmail.subject}
+                </h1>
+                {selectedEmail.importance === 'high' && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                    HIGH IMPORTANCE
+                  </span>
+                )}
+              </div>
 
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold">
-                    {selectedEmail.from.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="flex-1">
-                    <Text weight="semibold" size={300} className="block">
+              {/* Sender Info */}
+              <div className="flex items-start gap-3 pb-4 border-b border-gray-200">
+                <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-lg flex-shrink-0">
+                  {selectedEmail.from.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline justify-between mb-1">
+                    <Text weight="semibold" size={400} className="text-gray-900">
                       {selectedEmail.from}
                     </Text>
-                    <Text size={200} className="text-gray-500">
-                      To: Me
+                    <Text size={300} className="text-gray-500 flex-shrink-0 ml-4">
+                      {new Date(selectedEmail.date).toLocaleString([], {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      })}
                     </Text>
                   </div>
-                  <Text size={200} className="text-gray-500">
-                    {new Date(selectedEmail.date).toLocaleString()}
+                  <Text size={300} className="text-gray-600">
+                    To: Me
                   </Text>
                 </div>
               </div>
-
-              {/* Email Body */}
-              <div className="py-4">
-                <Text className="whitespace-pre-wrap leading-relaxed">
-                  {selectedEmail.body}
-                </Text>
-              </div>
-
-              {/* Copilot Button - Only for supplier email */}
-              {isSupplierEmail && (
-                <div className="pt-4 border-t flex justify-center">
-                  <Button
-                    appearance="primary"
-                    size="large"
-                    icon={<Sparkle24Regular />}
-                    onClick={onAskCopilot}
-                    className="animate-pulse hover:animate-none"
-                  >
-                    Ask Copilot for Help
-                  </Button>
-                </div>
-              )}
             </div>
+
+            {/* Email Body */}
+            <div className="prose prose-sm max-w-none">
+              <div className="text-[15px] leading-7 text-gray-900 whitespace-pre-wrap">
+                {selectedEmail.body}
+              </div>
+            </div>
+
           </div>
         </div>
+
+        {/* Urgent Emails Floating Button - Bottom Left */}
+        <div className="fixed bottom-6 left-20 z-50">
+          <Button
+            appearance="primary"
+            size="large"
+            icon={<Sparkle24Regular />}
+            onClick={() => setShowUrgentPanel(true)}
+            className="shadow-lg animate-pulse hover:animate-none"
+          >
+            {urgentEmails.length} emails need attention
+          </Button>
+        </div>
+
+        {/* Urgent Emails Panel */}
+        {showUrgentPanel && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center" onClick={() => setShowUrgentPanel(false)}>
+            <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 p-6" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Sparkle24Regular className="text-blue-600" />
+                  <Text size={500} weight="semibold">
+                    Emails Requiring Immediate Attention
+                  </Text>
+                </div>
+                <Button appearance="subtle" onClick={() => setShowUrgentPanel(false)}>
+                  ✕
+                </Button>
+              </div>
+
+              <Text size={300} className="text-gray-600 mb-4">
+                Copilot has identified {urgentEmails.length} emails that need your immediate response based on deadlines and urgency.
+              </Text>
+
+              <div className="space-y-3">
+                {urgentEmails.map((urgentEmail) => (
+                  <div
+                    key={urgentEmail.id}
+                    onClick={() => {
+                      setSelectedEmailId(urgentEmail.id);
+                      setShowUrgentPanel(false);
+                      // If it's the supplier email, trigger suggestions
+                      if (urgentEmail.id === 'email-001') {
+                        setTimeout(() => onAskCopilot(), 500);
+                      }
+                    }}
+                    className="border border-gray-200 rounded-lg p-4 hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center font-semibold flex-shrink-0">
+                        {urgentEmail.from.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Text size={400} weight="semibold" className="truncate">
+                            {urgentEmail.subject}
+                          </Text>
+                          {urgentEmail.importance === 'high' && (
+                            <span className="text-red-600 text-sm font-bold">URGENT</span>
+                          )}
+                        </div>
+                        <Text size={300} className="text-gray-600 truncate block mb-1">
+                          From: {urgentEmail.from}
+                        </Text>
+                        <Text size={200} className="text-gray-500 line-clamp-2">
+                          {urgentEmail.body.split('\n')[0]}
+                        </Text>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
